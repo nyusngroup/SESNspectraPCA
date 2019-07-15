@@ -139,9 +139,10 @@ def binspec(wvl, flux, wstart, wend, wbin):
     return answer/wbin, outlam
 
 #smooth spectrum using SNspecFFTsmooth procedure
-def smooth(wvl, flux, cut_vel):
+def smooth(wvl, flux, cut_vel, unc_arr=False):
     c_kms = 299792.47 # speed of light in km/s
     vel_toolarge = 100000 # km/s
+    width = 100
 
     wvl_ln = np.log(wvl)
     num = wvl_ln.shape[0]
@@ -188,6 +189,25 @@ def smooth(wvl, flux, cut_vel):
     #interpolate smoothed fluxes back onto original wavelengths
     w_smoothed = np.exp(wln_bin)
     f_smoothed = np.interp(wvl, w_smoothed, smooth_fbin_ft_inv)
+
+
+    if unc_arr:
+        f_resi = flux - f_smoothed
+        num = len(f_resi)
+        bin_size = int(np.floor(width/(wvl[1] - wvl[0]))) # window width in number of bins
+        bin_rad = int(np.floor(bin_size / 2))
+        f_std = np.zeros(num)
+        start_ind = bin_rad
+        end_ind = num - bin_rad
+        for j in np.arange(start_ind, end_ind):
+            f_std[j] = np.std(f_resi[j - bin_rad:j + bin_rad + 1])
+        for j in np.arange(1, bin_rad):
+            f_std[j] = np.std(f_resi[0:2*j+1])
+        for j in np.arange(end_ind, num - 1):
+            f_std[j] = np.std(f_resi[2*j - num +1:])
+        f_std[0] = np.abs(f_resi[0])
+        f_std[-1] = np.abs(f_resi[-1])
+        return w_smoothed, f_smoothed, sep_vel, f_std
 
     return w_smoothed, f_smoothed, sep_vel
 
@@ -244,6 +264,7 @@ class SNIDsn:
         self.subtype = None
 
         self.smoothinfo = dict()
+        self.smooth_uncertainty = dict()
 
         return
 
@@ -426,6 +447,8 @@ phase from the list of phases.
                 newphases.append(self.phases[i])
         self.phases = np.array(newphases)
         self.data = newstructarr
+        if colname in self.smooth_uncertainty.keys():
+            del self.smooth_uncertainty[colname]
         return
 
 
@@ -527,8 +550,9 @@ whether large gaps exist using the module function SNIDsn.largeGapsInRange().
 Uses the Modjaz et al method to smooth a spectrum.
         """
         spec = np.copy(self.data[phase])
-        wsmooth, fsmooth, sepvel = smooth(self.wavelengths, spec, velcut)
+        wsmooth, fsmooth, sepvel, fstd = smooth(self.wavelengths, spec, velcut, unc_arr=True)
         self.smoothinfo[phase] = sepvel
+        self.smooth_uncertainty[phase] = fstd
         self.data[phase] = fsmooth
 
         if plot:
