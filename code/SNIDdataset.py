@@ -1,4 +1,4 @@
-from __future__ import division
+#from __future__ import division
 import numpy as np
 import SNIDsn as snid
 import matplotlib.pyplot as plt
@@ -22,7 +22,7 @@ def loadDataset(pathdir, snlist):
         lines = f.readlines()
         f.close()
     for sn in lines:
-        print sn
+        print(sn)
         filename = sn.strip()
         snname = sn.strip().split('.')[0]
         snidObj = snid.SNIDsn()
