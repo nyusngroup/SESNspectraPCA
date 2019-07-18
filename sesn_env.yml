@@ -17,7 +17,7 @@ dependencies:
 - notebook
 - matplotlib
 - seaborn
-- plotly
+- plotly=2.0.12
 
 
 
