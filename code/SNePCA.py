@@ -1,4 +1,4 @@
-from __future__ import division
+#from __future__ import division
 
 import SNIDsn
 import SNIDdataset as snid
@@ -152,7 +152,7 @@ class SNePCA:
         self.IcBL_ellipse_color = 'gray'
         
         nspec = snid.numSpec(self.snidset)
-        snnames = self.snidset.keys()
+        snnames = list(self.snidset.keys())
         tmpobj = self.snidset[snnames[0]]
         nwvlbins = len(tmpobj.wavelengths)
         self.wavelengths = tmpobj.wavelengths
@@ -176,12 +176,12 @@ class SNePCA:
         return
 
     def getSNeNameMask(self, excludeSNe):
-        allNames = self.snidset.keys()
+        allNames = list(self.snidset.keys())
         nameMask = np.logical_not(np.isin(allNames, excludeSNe))
         return nameMask
 
     def getSNeTypeMasks(self):
-        snnames = self.snidset.keys()
+        snnames = list(self.snidset.keys())
         snnames = self.pcaNames
         typeinfo = snid.datasetTypeDict(self.snidset)
         IIblist = typeinfo['IIb']
@@ -213,7 +213,7 @@ class SNePCA:
     def calcPCACoeffs(self):
         self.pcaCoeffMatrix = np.dot(self.evecs, self.specMatrix.T).T
 
-        for i, snname in enumerate(self.snidset.keys()):
+        for i, snname in enumerate(list(self.snidset.keys())):
             snobj = self.snidset[snname]
             snobj.pcaCoeffs = self.pcaCoeffMatrix[i,:]
         return
@@ -584,45 +584,39 @@ class SNePCA:
 
         #centroids
         nameMask = self.getSNeNameMask(excludeSNe)
-        print np.array(self.snidset.keys())[nameMask]
-        print 'IIb'
+        print(np.array(list(self.snidset.keys()))[nameMask])
+        print('IIb')
         IIbxmean = np.mean(x[np.logical_and(IIbMask, nameMask)])
         IIbymean = np.mean(y[np.logical_and(IIbMask, nameMask)])
-        print 'IIb - x: ',x[np.logical_and(IIbMask, nameMask)]
-        print 'IIb - y: ',y[np.logical_and(IIbMask, nameMask)]
-        print 'mean = ',(IIbxmean, IIbymean)
+        print('IIb - x: ',x[np.logical_and(IIbMask, nameMask)])
+        print('IIb - y: ',y[np.logical_and(IIbMask, nameMask)])
+        print('mean = ',(IIbxmean, IIbymean))
 
-        print 'Ib'
+        print('Ib')
         Ibxmean = np.mean(x[np.logical_and(IbMask, nameMask)])
-        print x[np.logical_and(IbMask, nameMask)].shape
-        print x[IbMask].shape
+        print(x[np.logical_and(IbMask, nameMask)].shape)
+        print(x[IbMask].shape)
         Ibymean = np.mean(y[np.logical_and(IbMask, nameMask)])
-        print 'Ib - x: ',x[np.logical_and(IbMask, nameMask)]
-        print 'Ib - y: ',y[np.logical_and(IbMask, nameMask)]
-        print 'mean = ',(Ibxmean, Ibymean)
+        print('Ib - x: ',x[np.logical_and(IbMask, nameMask)])
+        print('Ib - y: ',y[np.logical_and(IbMask, nameMask)])
+        print('mean = ',(Ibxmean, Ibymean))
 
-        print 'Ic'
+        print('Ic')
         Icxmean = np.mean(x[np.logical_and(IcMask, nameMask)])
         Icymean = np.mean(y[np.logical_and(IcMask, nameMask)])
-        print 'Ic - x: ',x[np.logical_and(IcMask, nameMask)]
-        print 'Ic - y: ',y[np.logical_and(IcMask, nameMask)]
-        print "mask mean: ",Ibxmean, Ibymean
-        print "no mask mean: ", np.mean(x[IbMask]), np.mean(y[IbMask])
-        print 'mean = ',(Icxmean, Icymean)
+        print('Ic - x: ',x[np.logical_and(IcMask, nameMask)])
+        print('Ic - y: ',y[np.logical_and(IcMask, nameMask)])
+        print("mask mean: ",Ibxmean, Ibymean)
+        print("no mask mean: ", np.mean(x[IbMask]), np.mean(y[IbMask]))
+        print('mean = ',(Icxmean, Icymean))
 
-        print 'IcBL'
-        print 'IcBL - x: ',x[np.logical_and(IcBLMask, nameMask)]
-        print 'IcBL - y: ',y[np.logical_and(IcBLMask, nameMask)]
+        print('IcBL')
+        print('IcBL - x: ',x[np.logical_and(IcBLMask, nameMask)])
+        print('IcBL - y: ',y[np.logical_and(IcBLMask, nameMask)])
         IcBLxmean = np.mean(x[np.logical_and(IcBLMask, nameMask)])
         IcBLymean = np.mean(y[np.logical_and(IcBLMask, nameMask)])
-        print 'mean = ',(IcBLxmean, IcBLymean)
+        print('mean = ',(IcBLxmean, IcBLymean))
 
-        #ax.scatter(x[IIbMask], y[IIbMask], color=self.IIb_color, edgecolors='k',alpha=1/count)
-        #ax.scatter(x[IbMask], y[IbMask], color=self.Ib_color, edgecolors='k',alpha=1/count)
-        #ax.scatter(x[IcMask], y[IcMask], color=self.Ic_color, edgecolors='k',alpha=1/count)
-        #ax.scatter(x[IcBLMask], y[IcBLMask], color=self.IcBL_color, edgecolors='k',alpha=1/count)
-        #for i, name in enumerate(self.sneNames[IcBLMask]):
-        #    plt.text(x[IcBLMask][i], y[IcBLMask][i], name)
 
         if svm:
             truth = 1*IIbMask + 2*IbMask + 3*IcMask + 4*IcBLMask
@@ -636,21 +630,8 @@ class SNePCA:
                 score = linsvm.score(testX, testY)
                 ncv_scores.append(score)
             
-                #trainX, testX, trainY, testY = train_test_split(dat, truth, test_size=0.3)
-
-                #linsvm.fit(trainX, trainY)
-                #score = linsvm.score(testX, testY)
                 mesh_x, mesh_y = make_meshgrid(x, y, h=0.02)
 
-                #colors=[(0,1,0),(.8,.59,.58),(1,0,0),(0,0,0)]
-                #colors=['g','mediumorchid','r','gray']
-                
-                #colors=[self.IIb_color, self.Ib_color, self.Ic_color, self.IcBL_color]
-                #nbins = 4
-                #cmap_name = 'mymap'
-                #cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=nbins)
-                
-                #plot_contours(ax, linsvm, mesh_x, mesh_y, 0.2/alphasvm)
 
                 Z = linsvm.predict(np.c_[mesh_x.ravel(), mesh_y.ravel()])
 
@@ -684,7 +665,7 @@ class SNePCA:
 
         if purity:
             nameMask = self.getSNeNameMask(excludeSNe)
-            print 'rad namemask: ',nameMask
+            print('rad namemask: ',nameMask)
             IIb_rad_x = np.std(x[np.logical_and(IIbMask, nameMask)]) * std_rad
             Ib_rad_x = np.std(x[np.logical_and(IbMask, nameMask)]) * std_rad
             Ic_rad_x = np.std(x[np.logical_and(IcMask, nameMask)]) * std_rad
@@ -697,22 +678,22 @@ class SNePCA:
 
 
 
-            print 'IIb radx, rady',(IIb_rad_x, IIb_rad_y)
-            print 'Ib radx, rady',(Ib_rad_x, Ib_rad_y)
-            print 'Ic radx, rady',(Ic_rad_x, Ic_rad_y)
-            print 'IcBL radx, rady',(IcBL_rad_x, IcBL_rad_y)
+            print('IIb radx, rady',(IIb_rad_x, IIb_rad_y))
+            print('Ib radx, rady',(Ib_rad_x, Ib_rad_y))
+            print('Ic radx, rady',(Ic_rad_x, Ic_rad_y))
+            print('IcBL radx, rady',(IcBL_rad_x, IcBL_rad_y))
 
 
-            print "rad mask: ",Ib_rad_x, Ib_rad_y
-            print "rad all: ",np.std(x[IbMask]), np.std(y[IbMask])
-            print 'names all: ',np.array(self.snidset.keys())[IbMask]
+            print("rad mask: ",Ib_rad_x, Ib_rad_y)
+            print("rad all: ",np.std(x[IbMask]), np.std(y[IbMask]))
+            print('names all: ',np.array(list(self.snidset.keys()))[IbMask])
 
-            names = np.array(self.snidset.keys())
+            names = np.array(list(self.snidset.keys()))
             IIbnames = names[IIbMask]
             dist_x = np.power(x[IIbMask] - IIbxmean, 2)/np.power(2*IIb_rad_x, 2)
             dist_y = np.power(y[IIbMask] - IIbymean, 2)/np.power(2*IIb_rad_y, 2)
             outliers_mask = dist_x + dist_y >= 1
-            print 'IIb 2std outliers: ', IIbnames[outliers_mask]
+            print('IIb 2std outliers: ', IIbnames[outliers_mask])
             IIb_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(IIbnames[outliers_mask])), IIbMask)
             IIb_no_out_mask = np.logical_and(self.getSNeNameMask(IIbnames[outliers_mask]), IIbMask)
 
@@ -720,7 +701,7 @@ class SNePCA:
             dist_x = np.power(x[IbMask] - Ibxmean, 2)/np.power(2*Ib_rad_x, 2)
             dist_y = np.power(y[IbMask] - Ibymean, 2)/np.power(2*Ib_rad_y, 2)
             outliers_mask = dist_x + dist_y >= 1
-            print 'Ib 2std outliers: ', Ibnames[outliers_mask]
+            print('Ib 2std outliers: ', Ibnames[outliers_mask])
             Ib_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(Ibnames[outliers_mask])), IbMask)
             Ib_no_out_mask = np.logical_and(self.getSNeNameMask(Ibnames[outliers_mask]), IbMask)
            
@@ -728,7 +709,7 @@ class SNePCA:
             dist_x = np.power(x[IcMask] - Icxmean, 2)/np.power(2*Ic_rad_x, 2)
             dist_y = np.power(y[IcMask] - Icymean, 2)/np.power(2*Ic_rad_y, 2)
             outliers_mask = dist_x + dist_y >= 1
-            print 'Ic 2std outliers: ', Icnames[outliers_mask]
+            print('Ic 2std outliers: ', Icnames[outliers_mask])
             Ic_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(Icnames[outliers_mask])), IcMask)
             Ic_no_out_mask = np.logical_and(self.getSNeNameMask(Icnames[outliers_mask]), IcMask)
 
@@ -736,25 +717,10 @@ class SNePCA:
             dist_x = np.power(x[IcBLMask] - IcBLxmean, 2)/np.power(2*IcBL_rad_x, 2)
             dist_y = np.power(y[IcBLMask] - IcBLymean, 2)/np.power(2*IcBL_rad_y, 2)
             outliers_mask = dist_x + dist_y >= 1
-            print 'IcBL 2std outliers: ', IcBLnames[outliers_mask]
+            print('IcBL 2std outliers: ', IcBLnames[outliers_mask])
             IcBL_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(IcBLnames[outliers_mask])), IcBLMask)
             IcBL_no_out_mask = np.logical_and(self.getSNeNameMask(IcBLnames[outliers_mask]), IcBLMask)
-            #ncomp_arr = [pcax, pcay]
-            #keys, purity_rad_arr = self.purityEllipse(std_rad, ncomp_arr)
-            #IIbrad = purity_rad_arr[0]
-            #Ibrad = purity_rad_arr[1]
-            #IcBLrad = purity_rad_arr[2]
-            #Icrad = purity_rad_arr[3]
 
-            #ellipse_IIb = mpatches.Ellipse((IIbxmean, IIbymean),2*IIbrad[0],2*IIbrad[1], \
-            #                                color=self.IIb_ellipse_color, alpha=0.1/alphaell, fill=False, edgecolor=self.IIb_color, linewidth=4.0)
-            #ellipse_Ib = mpatches.Ellipse((Ibxmean, Ibymean),2*Ibrad[0],2*Ibrad[1], color=self.Ib_color,\
-            #                               alpha=0.1/alphaell, fill=False, edgecolor=self.Ib_color, linewidth=4.0)
-            #ellipse_Ic = mpatches.Ellipse((Icxmean, Icymean),2*Icrad[0],2*Icrad[1], color=self.Ic_color,\
-            #                               alpha=0.1/alphaell, fill=False, edgecolor=self.Ic_color, linewidth=4.0)
-            #ellipse_IcBL = mpatches.Ellipse((IcBLxmean, IcBLymean),2*IcBLrad[0],2*IcBLrad[1], color=self.IcBL_ellipse_color,\
-            #                                 alpha=0.1/alphaell,fill=False, edgecolor=self.IcBL_color, linewidth=4.0)
-            
 
             ellipse_IIb = mpatches.Ellipse((IIbxmean, IIbymean),2*IIb_rad_x,2*IIb_rad_y, \
                                             color=self.IIb_ellipse_color, alpha=0.1/alphaell, fill=False, edgecolor=self.IIb_color, linewidth=4.0)
@@ -769,10 +735,6 @@ class SNePCA:
             ax.add_patch(ellipse_Ic)
             ax.add_patch(ellipse_IcBL)
 
-        #ax.scatter(IIbxmean, IIbymean, color=self.IIb_color, alpha=0.5/alphamean, s=400, marker='x', linewidth=4.0)
-        #ax.scatter(Ibxmean, Ibymean, color=self.Ib_color, alpha=0.5/alphamean, s=400, marker='x', linewidth=4.0)
-        #ax.scatter(Icxmean, Icymean, color=self.Ic_color, alpha=0.5/alphamean, s=400, marker='x', linewidth=4.0)
-        #ax.scatter(IcBLxmean, IcBLymean, color=self.IcBL_color, alpha=0.5/alphamean, s=400, marker='x', linewidth=4.0)
         if markOutliers:
 
             ax.scatter(x[IIb_no_out_mask], y[IIb_no_out_mask], color=self.IIb_color, edgecolors='k',s=200,alpha=1,linewidth=2.0)
@@ -797,8 +759,6 @@ class SNePCA:
 
         ax.set_ylabel('PCA Comp %d'%(pcay),fontsize=20)
         ax.set_xlabel('PCA Comp %d'%(pcax), fontsize=20)
-#        plt.axis('off')
-        #plt.legend(handles=[red_patch, cyan_patch, black_patch, green_patch], fontsize=18)
         if svm:
             avgsc = np.mean(np.array(ncv_scores))
             stdsc = np.std(np.array(ncv_scores))
@@ -806,7 +766,6 @@ class SNePCA:
                             title='SVM Test Score = %.2f'%(avgsc), loc='upper right', ncol=1,fancybox=True, prop={'size':30},fontsize=30)
         else:
             ax.legend(handles=[Ic_patch, IcBL_patch, IIb_patch, Ib_patch], fontsize=18)
-        #plt.title('PCA Space Separability of IcBL and IIb SNe (Phase %d$\pm$%d Days)'%(self.loadPhase, self.phaseWidth),fontsize=22)
         ax.minorticks_on()
         ax.tick_params(
                     axis='both',          # changes apply to the x-axis
@@ -828,30 +787,29 @@ class SNePCA:
         for key,msk in zip(keys,masks):
             centroid = np.mean(self.pcaCoeffMatrix[:,ncomp_array][msk], axis=0)
             std = np.std(self.pcaCoeffMatrix[:,ncomp_array][msk], axis=0)
-            print 'centroid', centroid
+            print('centroid', centroid)
             dist_from_centroid = np.abs(self.pcaCoeffMatrix[:,ncomp_array][msk] - centroid)
             mean_dist_from_centroid = np.mean(dist_from_centroid, axis=0)
-            print 'mean dist from centroid: ', mean_dist_from_centroid
+            print('mean dist from centroid: ', mean_dist_from_centroid)
             std_dist_all_components = np.std(dist_from_centroid, axis=0)
-            print 'std dist from centroid: ', std_dist_all_components
+            print('std dist from centroid: ', std_dist_all_components)
             purity_rad_all = mean_dist_from_centroid + std_rad * std_dist_all_components
-            print 'purity rad all components: ', purity_rad_all
-            #purity_rad_arr.append(purity_rad_all)
+            print('purity rad all components: ', purity_rad_all)
             purity_rad_arr.append(std)
 
 
             ellipse_cond = np.sum(np.power((self.pcaCoeffMatrix[:,ncomp_array] - centroid), 2)/\
                                   np.power(purity_rad_all, 2), axis=1)
-            print 'ellipse condition: ', ellipse_cond
+            print('ellipse condition: ', ellipse_cond)
             purity_msk = ellipse_cond < 1
 
-            print key
-            print 'purity radius: ', purity_rad_all
-            print '# of SNe within purity ellipse for type '+key+': ',np.sum(purity_msk)
+            print(key)
+            print('purity radius: ', purity_rad_all)
+            print('# of SNe within purity ellipse for type '+key+': ',np.sum(purity_msk))
             names_within_purity_rad = self.pcaNames[purity_msk]
             correct_names = self.pcaNames[msk]
             correct_msk = np.isin(names_within_purity_rad, correct_names)
-            print '# of correct SNe '+key+': ', np.sum(correct_msk)
+            print('# of correct SNe '+key+': ', np.sum(correct_msk))
         return keys, purity_rad_arr
 
 
@@ -865,7 +823,6 @@ class SNePCA:
         col_black = 'rgba(0,0,0,152)'
         col_purp = 'rgba(186,85,211, 0.8)'
 
-        #np.array([nm+'_'+ph for nm,ph in zip(self.pcaNames, self.pcaPhases)])
         traceIIb=go.Scatter(x=pcax[IIbmask], y=pcay[IIbmask], mode='markers',\
                             marker=dict(size=10, line=dict(width=1), color=col_green, opacity=1), \
                             text=np.array([nm+'_'+ph for nm,ph in zip(self.pcaNames, self.pcaPhases)])[IIbmask], name='IIb')
@@ -886,21 +843,21 @@ class SNePCA:
 
 
         nameMask = self.getSNeNameMask(excludeSNe)
-        print np.array(self.snidset.keys())[nameMask]
+        print(np.array(list(self.snidset.keys()))[nameMask])
         IIbxmean = np.mean(pcax[np.logical_and(IIbmask, nameMask)])
         IIbymean = np.mean(pcay[np.logical_and(IIbmask, nameMask)])
         Ibxmean = np.mean(pcax[np.logical_and(Ibmask, nameMask)])
-        print pcax[np.logical_and(Ibmask, nameMask)].shape
-        print pcax[Ibmask].shape
+        print(pcax[np.logical_and(Ibmask, nameMask)].shape)
+        print(pcax[Ibmask].shape)
         Ibymean = np.mean(pcay[np.logical_and(Ibmask, nameMask)])
         Icxmean = np.mean(pcax[np.logical_and(Icmask, nameMask)])
         Icymean = np.mean(pcay[np.logical_and(Icmask, nameMask)])
-        print "mask mean: ",Ibxmean, Ibymean
-        print "no mask mean: ", np.mean(pcax[Ibmask]), np.mean(pcay[Ibmask])
+        print("mask mean: ",Ibxmean, Ibymean)
+        print("no mask mean: ", np.mean(pcax[Ibmask]), np.mean(pcay[Ibmask]))
         IcBLxmean = np.mean(pcax[np.logical_and(IcBLmask, nameMask)])
         IcBLymean = np.mean(pcay[np.logical_and(IcBLmask, nameMask)])
         nameMask = self.getSNeNameMask(excludeSNe)
-        print 'rad namemask: ',nameMask
+        print('rad namemask: ',nameMask)
         IIbradx = np.std(pcax[np.logical_and(IIbmask, nameMask)]) * std_rad
         Ibradx = np.std(pcax[np.logical_and(Ibmask, nameMask)]) * std_rad
         Icradx = np.std(pcax[np.logical_and(Icmask, nameMask)]) * std_rad
@@ -1021,7 +978,7 @@ Arguments:
             for j in range(ncomp):
                 if i > j:
                     plotNumber = ncomp * i + j + 1
-                    print plotNumber
+                    print(plotNumber)
                     plt.subplot(ncomp, ncomp, plotNumber)
                     y = self.pcaCoeffMatrix[:,i]
                     x = self.pcaCoeffMatrix[:,j]
@@ -1058,11 +1015,6 @@ Arguments:
                         std_table[j,i] = std
                         std_table[i,j] = std
 
-                        #trainX, testX, trainY, testY = train_test_split(dat, truth, test_size=0.3)
-
-                        #linsvm = LinearSVC()
-                        #linsvm.fit(trainX, trainY)
-                        #score = linsvm.score(testX, testY)
                         if score > svm_highscore:
                             svm_highscore = score
                             svm_x = j+1
@@ -1083,7 +1035,6 @@ Arguments:
         plt.subplot(5,5,9)#########################################################
         plt.axis('off')
         plt.legend(handles=[red_patch, cyan_patch, black_patch, green_patch])
-        #plt.text(-3.0,1.3,'Smoothed IcBL PCA Component 2D Marginalizations (Phase %d$\pm$%d Days)'%(self.loadPhase, self.phaseWidth),fontsize=16)
         if svm:
             return f, svm_highscore, svm_x, svm_y, means_table, std_table
         return f

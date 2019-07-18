@@ -1,0 +1,24 @@
+name: sesn
+
+channels:
+    - conda-forge
+    - main
+
+dependencies:
+- python=3
+- numpy=1.15
+- scipy=1.1
+- pandas=0.24
+- astropy=3
+- scikit-learn
+
+# Analysis
+- jupyter
+- notebook
+- matplotlib
+- seaborn
+- plotly=2.0.12
+
+
+
+
