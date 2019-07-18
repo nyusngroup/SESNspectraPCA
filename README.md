@@ -5,6 +5,14 @@ This repository contains the code for running the PCA + SVM spectral analysis on
 - <b>/SNePCAplots</b> contains final figures showing PCA reconstruction of SN2011ei, cumulative variance captured by principal components, time evolution of the eigenspectra, comparison of mean spectra vs eigenspectra, and SVM classification of SESNe.
 - <b>/code </b> contains the SNePCA.py which implements the PCA and SVM analysis used in [Williamson & Modjaz & Bianco (2019)](https://arxiv.org/abs/1903.06815). It also contains SNIDsn.py and SNIDdataset.py which are used to load the SNID template files (\*.lnw files) and compile them into a dataset for easy use. There is a tutorial jupyter notebook, <b> Tutorial.ipynb </b> which generates plots from [Williamson & Modjaz & Bianco (2019)](https://arxiv.org/abs/1903.06815) and demonstrates how the code is run.
 
+# Installing SESNspectraPCA
+
+In order to install the code, you will need [conda](https://docs.conda.io/en/latest/miniconda.html). Clone or Fork the SESNspectraPCA repository (we encourage pull requests!) then install the conda virtual environment:
+
+`conda env create -f sesn_env.yml`
+
+The code only supports Python 3, and pickled dataproducts use protocol=2 which is compatible for Python 3 and Python 2. Check out the [tutorial notebook](https://github.com/nyusngroup/SESNspectraPCA/tree/master/code) to get started.
+
 # Compiling the SESNe SNID Dataset
 
 In order to rerun the entirety of our analysis, including preprocessing, it is necessary to compile the dataset of SuperNova IDentification (SNID; [Blondin & Tonry 2007](https://iopscience.iop.org/article/10.1086/520494/meta)) Templates used in [Williamson & Modjaz & Bianco (2019)](https://arxiv.org/abs/1903.06815). Follow these steps:
