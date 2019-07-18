@@ -362,7 +362,7 @@ Arguments:
             if verbose:
                 print("num splines for this spectrum")
                 print(num_splines_spec)
-            for spline_ind in np.array(xy_knot_dict.keys())[:num_splines_spec]:
+            for spline_ind in np.array(list(xy_knot_dict.keys()))[:num_splines_spec]:
                 pair = xy_knot_dict[spline_ind][nspec_ind]
                 if verbose: 
                     print("knot pair")
@@ -442,7 +442,7 @@ phase from the list of phases.
                 newphases.append(self.phases[i])
         self.phases = np.array(newphases)
         self.data = newstructarr
-        if colname in self.smooth_uncertainty.keys():
+        if colname in list(self.smooth_uncertainty.keys()):
             del self.smooth_uncertainty[colname]
         return
 

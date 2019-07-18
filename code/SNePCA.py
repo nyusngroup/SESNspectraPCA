@@ -152,7 +152,7 @@ class SNePCA:
         self.IcBL_ellipse_color = 'gray'
         
         nspec = snid.numSpec(self.snidset)
-        snnames = self.snidset.keys()
+        snnames = list(self.snidset.keys())
         tmpobj = self.snidset[snnames[0]]
         nwvlbins = len(tmpobj.wavelengths)
         self.wavelengths = tmpobj.wavelengths
@@ -176,12 +176,12 @@ class SNePCA:
         return
 
     def getSNeNameMask(self, excludeSNe):
-        allNames = self.snidset.keys()
+        allNames = list(self.snidset.keys())
         nameMask = np.logical_not(np.isin(allNames, excludeSNe))
         return nameMask
 
     def getSNeTypeMasks(self):
-        snnames = self.snidset.keys()
+        snnames = list(self.snidset.keys())
         snnames = self.pcaNames
         typeinfo = snid.datasetTypeDict(self.snidset)
         IIblist = typeinfo['IIb']
@@ -213,7 +213,7 @@ class SNePCA:
     def calcPCACoeffs(self):
         self.pcaCoeffMatrix = np.dot(self.evecs, self.specMatrix.T).T
 
-        for i, snname in enumerate(self.snidset.keys()):
+        for i, snname in enumerate(list(self.snidset.keys())):
             snobj = self.snidset[snname]
             snobj.pcaCoeffs = self.pcaCoeffMatrix[i,:]
         return
@@ -584,7 +584,7 @@ class SNePCA:
 
         #centroids
         nameMask = self.getSNeNameMask(excludeSNe)
-        print(np.array(self.snidset.keys())[nameMask])
+        print(np.array(list(self.snidset.keys()))[nameMask])
         print('IIb')
         IIbxmean = np.mean(x[np.logical_and(IIbMask, nameMask)])
         IIbymean = np.mean(y[np.logical_and(IIbMask, nameMask)])
@@ -594,8 +594,8 @@ class SNePCA:
 
         print('Ib')
         Ibxmean = np.mean(x[np.logical_and(IbMask, nameMask)])
-        print x[np.logical_and(IbMask, nameMask)].shape
-        print x[IbMask].shape
+        print(x[np.logical_and(IbMask, nameMask)].shape)
+        print(x[IbMask].shape)
         Ibymean = np.mean(y[np.logical_and(IbMask, nameMask)])
         print('Ib - x: ',x[np.logical_and(IbMask, nameMask)])
         print('Ib - y: ',y[np.logical_and(IbMask, nameMask)])
@@ -686,9 +686,9 @@ class SNePCA:
 
             print("rad mask: ",Ib_rad_x, Ib_rad_y)
             print("rad all: ",np.std(x[IbMask]), np.std(y[IbMask]))
-            print('names all: ',np.array(self.snidset.keys())[IbMask])
+            print('names all: ',np.array(list(self.snidset.keys()))[IbMask])
 
-            names = np.array(self.snidset.keys())
+            names = np.array(list(self.snidset.keys()))
             IIbnames = names[IIbMask]
             dist_x = np.power(x[IIbMask] - IIbxmean, 2)/np.power(2*IIb_rad_x, 2)
             dist_y = np.power(y[IIbMask] - IIbymean, 2)/np.power(2*IIb_rad_y, 2)
@@ -843,7 +843,7 @@ class SNePCA:
 
 
         nameMask = self.getSNeNameMask(excludeSNe)
-        print(np.array(self.snidset.keys())[nameMask])
+        print(np.array(list(self.snidset.keys()))[nameMask])
         IIbxmean = np.mean(pcax[np.logical_and(IIbmask, nameMask)])
         IIbymean = np.mean(pcay[np.logical_and(IIbmask, nameMask)])
         Ibxmean = np.mean(pcax[np.logical_and(Ibmask, nameMask)])

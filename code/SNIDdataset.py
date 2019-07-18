@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 from collections import OrderedDict
 import pickle
 
-def savePickle(path, dataset):
+def savePickle(path, dataset, protocol=2):
     f = open(path, 'wb')
-    pickle.dump(dataset, f)
+    pickle.dump(dataset, f, protocol=2)
     f.close()
     return
 
@@ -40,19 +40,19 @@ def subset(dataset, keys):
 
 def datasetTypeDict(dataset):
     typeinfo = dict()
-    for sn in dataset.keys():
+    for sn in list(dataset.keys()):
         sntype = dataset[sn].type
         if sntype in typeinfo:
             typeinfo[sntype].append(sn)
         else:
             typeinfo[sntype] = [sn]
-    for key in typeinfo.keys():
+    for key in list(typeinfo.keys()):
         typeinfo[key] = np.array(typeinfo[key])
     return typeinfo
 
 def datasetPhaseDict(dataset):
     phaseinfo = dict()
-    for snname in dataset.keys():
+    for snname in list(dataset.keys()):
         snobj = dataset[snname]
         phases = snobj.phases
         phaseinfo[snname]=phases
@@ -60,7 +60,7 @@ def datasetPhaseDict(dataset):
 
 def numSpec(dataset):
     numSpec = 0
-    for snname in dataset.keys():
+    for snname in list(dataset.keys()):
         snobj = dataset[snname]
         numSpec = numSpec + len(snobj.getSNCols())
     return numSpec
@@ -69,7 +69,7 @@ def preprocess(dataset):
     """
 Preprocesses all spectra.
     """
-    for snname in dataset.keys():
+    for snname in list(dataset.keys()):
         snobj = dataset[snname]
         colnames = snobj.getSNCols()
         for col in colnames:
@@ -80,7 +80,7 @@ def snidsetNAN(dataset):
     """
 Replaces 0.0 placeholder for missing spectrum data with NaN for all SNe in dataset.
     """
-    for snname in dataset.keys():
+    for snname in list(dataset.keys()):
         snobj = dataset[snname]
         snobj.snidNAN()
     return
@@ -92,7 +92,7 @@ the spectrum has large gaps in the wavelength range of interest. All \
 remaining spectra are linearly interpolated in the wavelength region \
 of interest to remove NaN gaps.
     """
-    for snname in dataset.keys():
+    for snname in list(dataset.keys()):
         snobj = dataset[snname]
         phases = snobj.phases
         colnames = snobj.getSNCols()
@@ -114,7 +114,7 @@ def datasetWavelengthRange(dataset, minwvl, maxwvl):
     """
 For each SNIDsn object in the dataset, filters all spectra to the specified wvl range.
     """
-    for snname in dataset.keys():
+    for snname in list(dataset.keys()):
         snobj = dataset[snname]
         snobj.wavelengthFilter(minwvl, maxwvl)
     return
@@ -144,7 +144,7 @@ Plots all spectra in the dataset.
     """
     fig = plt.figure(figsize=figsize)
     count = 0
-    for snname in dataset.keys():
+    for snname in list(dataset.keys()):
         snobj = dataset[snname]
         colnames = snobj.getSNCols()
         for col in colnames:
@@ -153,14 +153,14 @@ Plots all spectra in the dataset.
     return fig
 
 def choosePhaseType(dataset, phtype):
-    for key in dataset.keys():
+    for key in list(dataset.keys()):
         sn_obj = dataset[key]
         if sn_obj.phaseType != phtype:
             deleteSN(dataset, key)
     return
 
 def removeSubType(dataset, subtypename):
-    for key in dataset.keys():
+    for key in list(dataset.keys()):
         sn_obj = dataset[key]
         if sn_obj.subtype == subtypename:
             deleteSN(dataset, key)
@@ -175,7 +175,7 @@ for each SNIDsn object is chosen for each phase range. The phase that is chosen 
 closest to the center of the phase range. If uniquePhaseFlag is False, then all phases that satisfy \
 each phase range are included.
     """
-    for snname in dataset.keys():
+    for snname in list(dataset.keys()):
         snobj = dataset[snname]
         phases = snobj.phases
         phasekeys = snobj.getSNCols()
@@ -211,7 +211,7 @@ def getDiagnostics(dataset):
     snid_type_str = []
     snphasetype = []
 
-    for key in dataset.keys():
+    for key in list(dataset.keys()):
         snobj = dataset[key]
         name = snobj.header['SN']
         phase = snobj.phases
