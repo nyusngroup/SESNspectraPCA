@@ -811,7 +811,7 @@ class SNIDsn:
 
         """
         filename = self.header['SN']
-        f = open(path+filename+'.pickle', 'w')
+        f = open(path+filename+'.pickle', 'wb')
         pickle.dump(self, f, protocol=protocol)
         f.close()
         return
