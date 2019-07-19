@@ -15,7 +15,20 @@ sns.set_color_codes('colorblind')
 
 def getType(tp, subtp):
     """
-Convert tuple type designation from SNID to string.
+    Convert tuple type designation from SNID to string.
+
+    Parameters
+    ----------
+    tp : int
+        SNID type int from template
+    subtp : int
+        SNID subtype int from template
+
+    Returns
+    -------
+    sntype : string
+    snsubtype : string
+
     """
     if tp == 1:
         sntype = 'Ia'
@@ -98,10 +111,25 @@ Convert tuple type designation from SNID to string.
 
 def largeGapsInRange(gaps, minwvl, maxwvl, maxgapsize):
     """
-Given a list of gaps, min and max wavelengths, and a maximum acceptable gap size,\
-returns a boolean which is True if a gap larger than maximum acceptable size \
-intersects the specified wavelength range. 
-     """
+    Given a list of gaps, min and max wavelengths, and a maximum acceptable gap size,
+    returns a boolean which is True if a gap larger than maximum acceptable size
+    intersects the specified wavelength range.
+
+    Parameters
+    ----------
+    gaps : list
+        list of gaps returned by SNIDsn.findGaps()
+    minwvl : float
+        minimum wavelength of wavelength range.
+    maxwvl : float
+        maximum wavelength of wavelength range.
+    maxgapsize : float
+        maximum allowed gap size (angstroms)
+
+    Returns
+    -------
+
+    """
     gapInRange = False
     for gap in gaps:
         gapStart = gap[0]
@@ -118,6 +146,31 @@ intersects the specified wavelength range.
 
 # Binspec implemented in python.
 def binspec(wvl, flux, wstart, wend, wbin):
+    """
+    Rebins wavelengths of a spectrum and linearly interpolates the original fluxes
+    to produce the new fluxes for the rebinned spectrum.
+
+    Parameters
+    ----------
+    wvl : np.array
+        wavelength values
+    flux : np.array
+        flux values
+    wstart : float
+        desired wavelength start for new binning
+    wend : float
+        desired wavelength end for new binning
+    wbin : float
+        desired bin size
+
+    Returns
+    -------
+    answer/wvin : np.array
+        interpolated fluxes
+    outlam : np.array
+        rebinned wavelength array
+
+    """
     nlam = (wend - wstart) / wbin + 1
     nlam = int(np.ceil(nlam))
     outlam = np.arange(nlam) * wbin + wstart
@@ -140,6 +193,33 @@ def binspec(wvl, flux, wstart, wend, wbin):
 
 #smooth spectrum using SNspecFFTsmooth procedure
 def smooth(wvl, flux, cut_vel, unc_arr=False):
+    """
+    Smoothes spectra by separating SN features from noise in Fourier space.
+    Python implementation of the IDL smoothing technique introduced by Liu et al. 2016
+    (https://github.com/nyusngroup/SESNspectraLib/blob/master/SNspecFFTsmooth.pro)
+
+    Parameters
+    ----------
+    wvl : np.array
+        wavelength array
+    flux : np.array
+        flux array
+    cut_vel : float
+        velocity cut for SN features. Recommended 1000 km/s for non IcBL spectra
+        and 3000 km/s for IcBL spectra.
+    unc_arr : Boolean
+        Calculates uncertainty array if True.
+
+    Returns
+    -------
+    w_smoothed : np.array
+        wavelength array for smoothed fluxes
+    f_smoothed : np.array
+        smoothed flux array
+    sepvel : float
+        velocity for separating SN features.
+
+    """
     c_kms = 299792.47 # speed of light in km/s
     vel_toolarge = 100000 # km/s
     width = 100
@@ -207,6 +287,19 @@ def smooth(wvl, flux, cut_vel, unc_arr=False):
     return w_smoothed, f_smoothed, sep_vel
 
 def knot_meanflux_list(cont_header):
+    """
+    Gathers the knot meanflux pairs as one of the steps for
+    restoring the SNID continuum.
+
+    Parameters
+    ----------
+    cont_header : SNID template continuum header
+
+    Returns
+    -------
+    knot_meanflux_pair_list : list
+
+    """
     knot_meanflux_pair_list = []
     for i in range(int(len(cont_header[1:])/2)):
         nknot = cont_header[1:][2*i]
@@ -216,6 +309,18 @@ def knot_meanflux_list(cont_header):
     return knot_meanflux_pair_list
 
 def knot_dict(cont):
+    """
+    Gathers the knots of the continuum removal in the SNID header into a dictionary.
+
+    Parameters
+    ----------
+    cont : SNID continuum template lines.
+
+    Returns
+    -------
+    d : dict
+
+    """
     d = dict()
     for row in cont:
         key = row[0]
@@ -229,6 +334,16 @@ def knot_dict(cont):
     return d
 
 def snid_wvl_axis():
+    """
+    Creates the SNID template wavelength axis for restoring the continuum.
+
+    Returns
+    -------
+    new_wlog : np.array
+    dwbin : np.array
+    dwlog : float
+
+    """
     nw = 1024
     w0 = 2500
     w1 = 10000
@@ -243,6 +358,21 @@ def snid_wvl_axis():
     return new_wlog, dwbin, dwlog
 
 def convert_xknot_wvl(xknot, nw, wvl):
+    """
+    Converts knots to wavelength values as part of the restore
+    continuum process.
+
+    Parameters
+    ----------
+    xknot : float
+    nw : int
+    wvl : np.array
+
+    Returns
+    -------
+    wave : float
+
+    """
     pix = np.arange(nw)+1
     wave = np.interp(xknot,pix,wvl)
     return wave
@@ -265,9 +395,17 @@ class SNIDsn:
 
     def loadSNIDlnw(self, lnwfile):
         """
-Loads a SNID .lnw file into a SNIDsn object. Header information from the .lnw file \
-is stored in a header dictionary. Other data is stored in the following fields: continuum, phases,\
-phaseType, wavelengths, data, type, subtype.
+        Loads the .lnw SNID template file specified by the path lnwfile into
+        a SNIDsn object.
+
+        Parameters
+        ----------
+        lnwfile : string
+            path to SNID template file produced by logwave.
+
+        Returns
+        -------
+
         """
         with open(lnwfile) as lnw:
             lines = lnw.readlines()
@@ -328,7 +466,16 @@ phaseType, wavelengths, data, type, subtype.
 
     def preprocess(self, phasekey):
         """
-Zeros the mean and scales std to 1 for the spectrum indicated.
+        Zeros the mean and scales std to 1 for the spectrum indicated.
+
+        Parameters
+        ----------
+        phasekey : string
+            phase of the fluxes to preprocess
+
+        Returns
+        -------
+
         """
         specMean = np.mean(self.data[phasekey])
         specStd = np.std(self.data[phasekey])
@@ -337,9 +484,20 @@ Zeros the mean and scales std to 1 for the spectrum indicated.
 
     def restoreContinuum(self, verbose=False, spl_a_ind=0, spl_b_ind=-1):
         """
-Restores the SNID continuum.
-Arguments:
-    knotmode -- ('wvl', 'pix') whether to compute knot values in wavelength or pixel units.
+        Restores the SNID continuum for all spectra. The spectra with the
+        continuum restored fluxes is stored in self.data_unflat
+
+        Parameters
+        ----------
+        verbose : Boolean
+        spl_a_ind : int
+            index of starting knot to use in restoration.
+        spl_b_ind : int
+            index of ending knot to use in restoration.
+
+        Returns
+        -------
+
         """
         continuum_header = self.continuum[0]
         continuum = self.continuum[1:]
@@ -413,8 +571,17 @@ Arguments:
 
     def wavelengthFilter(self, wvlmin, wvlmax):
         """
-Filters the wavelengths to a user specified range, and adjusts the spectra data\
-array to reflect that wavelength range.
+        Filters the wavelengths to a user specified range, and adjusts the spectra data\
+        array to reflect that wavelength range.
+
+        Parameters
+        ----------
+        wvlmin : float
+        wvlmax : float
+
+        Returns
+        -------
+
         """
         wvlfilter = np.logical_and(self.wavelengths < wvlmax, self.wavelengths > wvlmin)
         wvl = self.wavelengths[wvlfilter]
@@ -424,8 +591,17 @@ array to reflect that wavelength range.
        
     def removeSpecCol(self, colname):
         """
-Removes the column named colname from the structured spectra matrix. Removes the \
-phase from the list of phases.
+        Removes the column named colname from the structured spectra matrix.
+        Removes the phase from the list of phases.
+
+        Parameters
+        ----------
+        colname : string
+            phase to remove from SNIDsn object.
+
+        Returns
+        -------
+
         """
         newdtype = [(dt[0], dt[1]) for dt in self.data.dtype.descr if dt[0] != colname]
         newshape = (len(self.data),len(newdtype))
@@ -449,8 +625,12 @@ phase from the list of phases.
 
     def snidNAN(self):
         """
-SNID uses 0.0 as a placeholder value when observed data is not available for \
-a certain wavelength. This method replaces all 0.0 values with NaN.
+        SNID uses 0.0 as a placeholder value when observed data is not available for
+        a certain wavelength. This method replaces all 0.0 values with NaN.
+
+        Returns
+        -------
+
         """
         colnames = self.getSNCols()
         for col in colnames:
@@ -459,14 +639,29 @@ a certain wavelength. This method replaces all 0.0 values with NaN.
 
     def getSNCols(self):
         """
-Returns spectra structured array column names for the user.
+        Returns spectra structured array column names for the user.
+
+        Returns
+        -------
+        names : np.array
+
         """
         return self.data.dtype.names
 
 
     def findGaps(self, phase):
         """
-Returns a list of all the gaps present in the spectrum for the given phase.
+        Returns a list of all the gaps present in the spectrum for the given phase.
+
+        Parameters
+        ----------
+        phase : string
+
+        Returns
+        -------
+        gaps : list
+            list of (minPhase, maxPhase) tuples for all gaps in spectrum.
+
         """
         spec = self.data[phase]
         wvl = self.wavelengths
@@ -493,11 +688,23 @@ Returns a list of all the gaps present in the spectrum for the given phase.
     
     def getInterpRange(self, minwvl, maxwvl, phase):
         """
-Returns the wavelength range needed for interpolating out gaps. Returned \
-range encloses the range specified by min and max wvl. Does not assume \
-anything about size of the gaps inside the user specified wvl range. \
-Exits with assert error if no finite values exist on one of the sides \
-of the user specified wvl range.
+        Returns the wavelength range needed for interpolating out gaps. Returned
+        range encloses the range specified by min and max wvl. Does not assume
+        anything about size of the gaps inside the user specified wvl range.
+        Exits with assert error if no finite values exist on one of the sides
+        of the user specified wvl range.
+
+        Parameters
+        ----------
+        minwvl : float
+        maxwvl : float
+        phase : string
+
+        Returns
+        -------
+        wvStartFinite : float
+        wvEndFinite : float
+
         """
         wavelengths = self.wavelengths
         spec = self.data[phase]
@@ -519,9 +726,22 @@ of the user specified wvl range.
 
     def interp1dSpec(self, phase, minwvl, maxwvl, plot=False):
         """
-Linearly interpolates any gaps in the spectrum specified by phase, in the wvl range (inclusive of endpoints) \
-specified by the user. Default behavior is to not check for gaps. It is up to the user to determine \
-whether large gaps exist using the module function SNIDsn.largeGapsInRange().
+        Linearly interpolates any gaps in the spectrum specified by phase,
+        in the wvl range (inclusive of endpoints) specified by the user.
+        Default behavior is to not check for gaps. It is up to the user to
+        determine whether large gaps exist using the module function
+        SNIDsn.largeGapsInRange().
+
+        Parameters
+        ----------
+        phase : string
+        minwvl : float
+        maxwvl : float
+        plot : Boolean
+
+        Returns
+        -------
+
         """
         wvlmsk = np.logical_and(self.wavelengths >= minwvl, self.wavelengths <= maxwvl)
         specRange = self.data[phase][wvlmsk]
@@ -542,7 +762,19 @@ whether large gaps exist using the module function SNIDsn.largeGapsInRange().
 
     def smoothSpectrum(self, phase, velcut, plot=False):
         """
-Uses the Modjaz et al method to smooth a spectrum.
+        Uses the Liu et al. 2016 method to smooth a spectrum.
+
+        Parameters
+        ----------
+        phase : string
+        velcut : float
+            velocity cut for SN features. Recommended 1000 km/s
+            for non IcBL spectra and 3000 km/s for IcBL spectra.
+        plot : Boolean
+
+        Returns
+        -------
+
         """
         spec = np.copy(self.data[phase])
         wsmooth, fsmooth, sepvel, fstd = smooth(self.wavelengths, spec, velcut, unc_arr=True)
@@ -561,13 +793,25 @@ Uses the Modjaz et al method to smooth a spectrum.
 
 
 
-    def save(self, path='./'):
+    def save(self, path='./', protocol=2):
         """
-Saves the SNIDsn object using pickle. Filename is automatically generated using \
-the sn name stored in the SNIDsn.header['SN'] field.
+        Saves the SNIDsn object using pickle. Filename is
+        automatically generated using the sn name stored
+        in the SNIDsn.header['SN'] field.
+
+        Parameters
+        ----------
+        path : string
+        protocol : int
+            pickle protocol. Default protocol=2 makes
+            pickle object Python 2.7 and 3.4 compatible.
+
+        Returns
+        -------
+
         """
         filename = self.header['SN']
         f = open(path+filename+'.pickle', 'w')
-        pickle.dump(self, f)
+        pickle.dump(self, f, protocol=protocol)
         f.close()
         return
