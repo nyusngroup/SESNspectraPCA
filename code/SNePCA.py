@@ -1,5 +1,3 @@
-#from __future__ import division
-
 import SNIDsn
 import SNIDdataset as snid
 
@@ -32,14 +30,6 @@ import pickle
 from scipy.io.idl import readsav
 import pylab as pl
 
-def saveSNePCA(obj,savefile):
-    f = open(savefile,'wb')
-    pickle.dump(obj,f)
-    f.close()
-    return
-def loadSNePCA(loadfile):
-    SNePCAObj = pickle.load(open(loadfile,"rb"))
-    return SNePCAObj
 
 def readtemplate(tp):
     if tp=='IcBL':
