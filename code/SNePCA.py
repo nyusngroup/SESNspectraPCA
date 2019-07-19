@@ -36,21 +36,11 @@ def readtemplate(tp):
         s = readsav('PCvsTemplates/meanspec%s_1specperSN_15_ft.sav'%tp)
     else:
         s = readsav('PCvsTemplates/meanspec%s_1specperSN_15.sav'%tp)
-    #pl.fill_between(s.wlog, s.fmean + s.fsdev, s.fmean - s.fsdev, 
-    #                color = 'k', alpha = 0.5)
-    #pl.plot(s.wlog, s.fmean, label="flattened mean %s phase = 15"%tp
-    #        , lw=2)
-    #pl.ylabel(r"relative flux", fontsize = 18)
-    #pl.xlabel(r"Rest Wavelength $\AA$", fontsize = 18)
-    #pl.legend(fontsize = 18)
-    #pl.show()
-    
+
     return s
 def plotPCs(s, tp, c, ax, eig, ewav, sgn):
-    #fig = pl.figure(figsize=(5,5))
     lines = []
     for i,e in enumerate(eig):
-       # pl.plot(np.linspace(4000,7000,len(e)), e +0.5*i, label="PC%i"%i)
         line = ax.plot(ewav, sgn[i]*2*e +5-1.0*i, label="PCA%i"%i)
         lines.append(line)
         if i:
@@ -64,9 +54,7 @@ def plotPCs(s, tp, c, ax, eig, ewav, sgn):
             
     ax.set_xlim(4000,7000)
     ax.set_xlabel("wavelength ($\AA$)",fontsize=26)
-    #ax.ylabel("relative flux")
     ax.set_ylim(0, 8)
-    #ax.legend(ncol=3, loc='upper right', fontsize=20)
     return ax, lines
 def make_meshgrid(x, y, h=.02):
     """Create a mesh of points to plot in
@@ -193,11 +181,6 @@ class SNePCA:
         self.evecs = pca.components_
         self.evals = pca.explained_variance_ratio_
         self.evals_cs = self.evals.cumsum()
-#        self.pcaCoeffMatrix = np.dot(self.evecs, self.specMatrix.T).T
-#
-#        for i, snname in enumerate(self.snidset.keys()):
-#            snobj = self.snidset[snname]
-#            snobj.pcaCoeffs = self.pcaCoeffMatrix[i,:]
         return
 
     def calcPCACoeffs(self):
@@ -244,10 +227,6 @@ class SNePCA:
                 top='off',         # ticks along the top edge are off
                 labelbottom='off') # labels along the bottom edge are off
             ax.set_ylim(ylim)
-            #if i == 0:
-            #    yticks = np.arange(ylim[0], ylim[-1]+dytick, dytick)
-            #else:
-            #    yticks = np.arange(ylim[0] - np.sign(ylim[0])*dytick, ylim[-1], dytick)
             yticks = np.arange(ylim[0] - np.sign(ylim[0])*dytick, ylim[-1], dytick)
             ax.set_yticks(yticks)
             ax.set_yticklabels([])
@@ -258,8 +237,6 @@ class SNePCA:
                 trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
                 trans2 = transforms.blended_transform_factory(ax.transAxes, ax.transAxes)
 
-                #ax.text(0.02,1.03, "(N PCA, %$\sigma^{2}$)", fontsize=fontsize, horizontalalignment='left',\
-                #        verticalalignment='center', transform=trans2)
 
                 ax.axvspan(6213, 6366, alpha=0.1, color=self.H_color) #H alpha -9000 km/s to -16000 km/s
                 s = r'$\alpha$'
@@ -305,29 +282,14 @@ class SNePCA:
                 #text = '(n PCA = %i,$\sigma^{2}$ =  %.0f'%(n, 100*self.evals_cs[n-1])+'%)'
             ax.text(0.75, 0.3, 'nPC = %i'%(n), fontsize=fontsize, ha='left', va='top', transform=ax.transAxes)
             reconstruct_percent = np.sum(np.abs(pcaCoeff[:n]))/np.sum(np.abs(pcaCoeff))
-            #text = '$\sigma^{2}$ = %.2f'%(100*self.evals_cs[n-1])+'%'
             text = '$\sigma^{2}$ = %.2f'%(100*reconstruct_percent)+'%'
-            #ax.text(0.02, 0.1, text, fontsize=fontsize, ha='left', va='top', transform=ax.transAxes)
             ax.text(0.75, 0.15, text, fontsize=fontsize,ha='left', va='top', transform=ax.transAxes)
             f.axes[-1].set_xlabel(r'${\rm Wavelength\ (\AA)}$',fontsize=fontsize)
-            #f.axes[-1].set_xticklabels(np.arange(4000, 8000, 500),fontsize=fontsize-10)
             f.axes[-1].tick_params(axis='x', length=30, direction="inout", labelsize=fontsize-10)
             f.axes[-1].tick_params(axis='x', which='minor', length=15, direction='inout')
             f.text(0.055, 1.0/2.0, 'Relative Flux', verticalalignment='center', rotation='vertical', fontsize=fontsize)
 
 
-        #ax = plt.subplot(hostgrid[:1,0])
-        #xcumsum = np.arange(len(self.evals_cs)+1)
-        #ycumsum = np.hstack((np.array([0]), self.evals_cs))
-        #ax.scatter(xcumsum, ycumsum, s=150, c='r')
-        #ax.text(5,self.evals_cs[4]-.075,'(5,%.2f)'%(self.evals_cs[4]),fontsize=60,color='r')
-        #ax.plot(xcumsum,ycumsum, linewidth=4.0,c='k')
-        #ax.set_ylabel('Cumulative '+'$\sigma^{2}$', fontsize=65)
-        #ax.set_xlabel('nPC', fontsize=fontsize)
-        #ax.tick_params(axis='both',which='both',labelsize=fontsize-10)
-        #ax.tick_params(axis='x', length=30, direction='inout')
-        #ax.tick_params(axis='x', which='minor', length=15, direction='inout')
-        #ax.xaxis.set_minor_locator(MultipleLocator(5))
         return f, hostgrid
 
 
@@ -373,10 +335,6 @@ class SNePCA:
                 top='off',         # ticks along the top edge are off
                 labelbottom='off') # labels along the bottom edge are off
             ax.set_ylim(ylim)
-            #if i == 0:
-            #    yticks = np.arange(ylim[0], ylim[-1]+dytick, dytick)
-            #else:
-            #    yticks = np.arange(ylim[0] - np.sign(ylim[0])*dytick, ylim[-1], dytick)
             yticks = np.arange(ylim[0] - np.sign(ylim[0])*dytick, ylim[-1], dytick)
             ax.set_yticks(yticks)
             ax.set_yticklabels([])
@@ -387,8 +345,6 @@ class SNePCA:
                 trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
                 trans2 = transforms.blended_transform_factory(ax.transAxes, ax.transAxes)
 
-                #ax.text(0.02,1.03, "(N PCA, %$\sigma^{2}$)", fontsize=fontsize, horizontalalignment='left',\
-                #        verticalalignment='center', transform=trans2)
 
                 ax.axvspan(6213, 6366, alpha=0.1, color=self.H_color) #H alpha -9000 km/s to -16000 km/s
                 s = r'$\alpha$'
@@ -431,10 +387,8 @@ class SNePCA:
             else:
                 text = "%i components\n" % n
                 text += r"$(\sigma^2_{tot} = %.2f)$" % self.evals_cs[n - 1]
-                #text = '(n PCA = %i,$\sigma^{2}$ =  %.0f'%(n, 100*self.evals_cs[n-1])+'%)'
             ax.text(0.77, 0.3, 'nPC = %i'%(n), fontsize=fontsize, ha='left', va='top', transform=ax.transAxes)
             text = '$\sigma^{2}$ = %.2f'%(100*self.evals_cs[n-1])+'%'
-            #ax.text(0.02, 0.1, text, fontsize=fontsize, ha='left', va='top', transform=ax.transAxes)
             ax.text(0.77, 0.15, text, fontsize=fontsize,ha='left', va='top', transform=ax.transAxes)
             f.axes[-1].set_xlabel(r'${\rm Wavelength\ (\AA)}$',fontsize=fontsize)
             f.axes[-1].set_xticklabels(np.arange(4000, 8000, 500),fontsize=fontsize)
@@ -518,7 +472,6 @@ class SNePCA:
             if i%4 != 0:
                 tick.set_visible(False)
 
-        #f.text(0.07, 2.0/3.0, 'Relative Flux', verticalalignment='center', rotation='vertical', fontsize=16)
         return f, hostgrid
 
 
@@ -534,21 +487,6 @@ class SNePCA:
         axs[0,1], _ = plotPCs(snIb, 'Ib','mediumorchid', axs[0,1], self.evecs[0:5], self.wavelengths,[1,-1,-1,1,-1])
         axs[1,0], _ = plotPCs(snIcBL, 'IcBL','k', axs[1,0], self.evecs[0:5], self.wavelengths,[1,-1,-1,1,-1])
         axs[1,1], lines = plotPCs(snIc, 'Ic','r', axs[1,1], self.evecs[0:5], self.wavelengths,[1,-1,-1,1,-1])
-        #leg = [el[0] for el in lines]
-        #red_patch = mpatches.Patch(color='b', label='Ib Mean Spec', alpha=0.1)
-        #green_patch = mpatches.Patch(color='g', label='IIb Mean Spec', alpha=0.1)
-        #black_patch = mpatches.Patch(color='k', label='IcBL Mean Spec', alpha=0.1)
-        #blue_patch = mpatches.Patch(color='r', label='Ic Mean Spec', alpha=0.1)
-        #leg.append(green_patch)
-        #leg.append(black_patch)
-        #leg.append(red_patch)
-        #leg.append(blue_patch)
-        
-        #plt.figlegend(labels=['PCA1', 'PCA2', 'PCA3', 'PCA4', 'PCA5','IIb Mean Spec', 'IcBL Mean Spec', 'Ib Mean Spec','Ic Mean Spec'],\
-        #              handles=leg, loc=(0.25,.45), ncol=4, fontsize=20)
-        #plt.suptitle('Eigenspectra vs SNe Mean Templates',size=20)
-        #f.savefig('pca_vs_templates.png')
-        #f
         return f, axs
 
 
@@ -643,16 +581,7 @@ class SNePCA:
                 cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=nbins)
                 Z = Z.reshape(mesh_x.shape)
                 out = ax.contourf(mesh_x, mesh_y, Z, cmap=cm, alpha=0.2/alphasvm)
-            
-
-
-
-
                 svmsc.append(score)
-
-
-
-
         if purity:
             nameMask = self.getSNeNameMask(excludeSNe)
             print('rad namemask: ',nameMask)
