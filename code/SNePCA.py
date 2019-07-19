@@ -1,5 +1,3 @@
-#from __future__ import division
-
 import SNIDsn
 import SNIDdataset as snid
 
@@ -32,35 +30,31 @@ import pickle
 from scipy.io.idl import readsav
 import pylab as pl
 
-def saveSNePCA(obj,savefile):
-    f = open(savefile,'wb')
-    pickle.dump(obj,f)
-    f.close()
-    return
-def loadSNePCA(loadfile):
-    SNePCAObj = pickle.load(open(loadfile,"rb"))
-    return SNePCAObj
 
 def readtemplate(tp):
+    """
+    Quick function for reading in meanspec templates.
+
+    Parameters
+    ----------
+    tp : string
+        SN type
+
+    Returns
+    -------
+    s : meanspec .sav file.
+
+    """
     if tp=='IcBL':
         s = readsav('PCvsTemplates/meanspec%s_1specperSN_15_ft.sav'%tp)
     else:
         s = readsav('PCvsTemplates/meanspec%s_1specperSN_15.sav'%tp)
-    #pl.fill_between(s.wlog, s.fmean + s.fsdev, s.fmean - s.fsdev, 
-    #                color = 'k', alpha = 0.5)
-    #pl.plot(s.wlog, s.fmean, label="flattened mean %s phase = 15"%tp
-    #        , lw=2)
-    #pl.ylabel(r"relative flux", fontsize = 18)
-    #pl.xlabel(r"Rest Wavelength $\AA$", fontsize = 18)
-    #pl.legend(fontsize = 18)
-    #pl.show()
-    
+
     return s
+
 def plotPCs(s, tp, c, ax, eig, ewav, sgn):
-    #fig = pl.figure(figsize=(5,5))
     lines = []
     for i,e in enumerate(eig):
-       # pl.plot(np.linspace(4000,7000,len(e)), e +0.5*i, label="PC%i"%i)
         line = ax.plot(ewav, sgn[i]*2*e +5-1.0*i, label="PCA%i"%i)
         lines.append(line)
         if i:
@@ -74,9 +68,7 @@ def plotPCs(s, tp, c, ax, eig, ewav, sgn):
             
     ax.set_xlim(4000,7000)
     ax.set_xlabel("wavelength ($\AA$)",fontsize=26)
-    #ax.ylabel("relative flux")
     ax.set_ylim(0, 8)
-    #ax.legend(ncol=3, loc='upper right', fontsize=20)
     return ax, lines
 def make_meshgrid(x, y, h=.02):
     """Create a mesh of points to plot in
@@ -99,15 +91,16 @@ def make_meshgrid(x, y, h=.02):
 
 
 def plot_contours(ax, clf, xx, yy, alphasvm):
-    """Plot the decision boundaries for a classifier.
+    """
+    Plot the decision boundaries for a classifier.
 
     Parameters
     ----------
-    ax: matplotlib axes object
-    clf: a classifier
-    xx: meshgrid ndarray
-    yy: meshgrid ndarray
-    params: dictionary of params to pass to contourf, optional
+    ax : matplotlib axes object
+    clf : a classifier
+    xx : meshgrid ndarray
+    yy : meshgrid ndarray
+    alphasvm : float
     """
     Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
 
@@ -176,11 +169,30 @@ class SNePCA:
         return
 
     def getSNeNameMask(self, excludeSNe):
+        """
+        Returns a mask to filter out the named SNe in excludeSNe.
+
+        Parameters
+        ----------
+        excludeSNe : list
+            list of strings that are SN names.
+
+        Returns
+        -------
+        nameMask : np.array
+
+        """
         allNames = list(self.snidset.keys())
         nameMask = np.logical_not(np.isin(allNames, excludeSNe))
         return nameMask
 
     def getSNeTypeMasks(self):
+        """
+        Returns
+        -------
+        Masks that select each of the 4 major SESN types.
+
+        """
         snnames = list(self.snidset.keys())
         snnames = self.pcaNames
         typeinfo = snid.datasetTypeDict(self.snidset)
@@ -198,19 +210,27 @@ class SNePCA:
 
 
     def snidPCA(self):
+        """
+        Calculates PCA eigenspectra and stores them in self.evecs
+        Returns
+        -------
+
+        """
         pca = PCA()
         pca.fit(self.specMatrix)
         self.evecs = pca.components_
         self.evals = pca.explained_variance_ratio_
         self.evals_cs = self.evals.cumsum()
-#        self.pcaCoeffMatrix = np.dot(self.evecs, self.specMatrix.T).T
-#
-#        for i, snname in enumerate(self.snidset.keys()):
-#            snobj = self.snidset[snname]
-#            snobj.pcaCoeffs = self.pcaCoeffMatrix[i,:]
         return
 
     def calcPCACoeffs(self):
+        """
+        Calculates the pca coefficients for all spectra and stores
+        them in self.pcaCoeffMatrix
+        Returns
+        -------
+
+        """
         self.pcaCoeffMatrix = np.dot(self.evecs, self.specMatrix.T).T
 
         for i, snname in enumerate(list(self.snidset.keys())):
@@ -223,7 +243,36 @@ class SNePCA:
 
 
 
-    def reconstructSpectrumGrid(self, figsize, snname, phasekey, Nhostgrid, nPCAComponents, fontsize, leg_fontsize, ylim=(-2,2), dytick=1):
+    def reconstructSpectrumGrid(self, figsize, snname, phasekey,
+                                Nhostgrid, nPCAComponents, fontsize,
+                                leg_fontsize, ylim=(-2,2), dytick=1):
+        """
+        Reconstructs the spectrum of snname at phase phasekey.
+
+        Parameters
+        ----------
+        figsize : tuple
+        snname : string
+            name of SN
+        phasekey : string
+            phase of spectrum
+        Nhostgrid : int
+            Number of subgrids
+        nPCAComponents : list
+            list of options for number of
+            eigenspectra to include in reconstruction.
+        fontsize : int
+        leg_fontsize : int
+            legend fontsize
+        ylim : tuple
+        dytick : int
+
+        Returns
+        -------
+        f : plt.figure
+        hostgrid : GridSpec
+
+        """
         
         f = plt.figure(figsize=figsize)
         hostgrid = gridspec.GridSpec(Nhostgrid,1)
@@ -254,10 +303,6 @@ class SNePCA:
                 top='off',         # ticks along the top edge are off
                 labelbottom='off') # labels along the bottom edge are off
             ax.set_ylim(ylim)
-            #if i == 0:
-            #    yticks = np.arange(ylim[0], ylim[-1]+dytick, dytick)
-            #else:
-            #    yticks = np.arange(ylim[0] - np.sign(ylim[0])*dytick, ylim[-1], dytick)
             yticks = np.arange(ylim[0] - np.sign(ylim[0])*dytick, ylim[-1], dytick)
             ax.set_yticks(yticks)
             ax.set_yticklabels([])
@@ -268,8 +313,6 @@ class SNePCA:
                 trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
                 trans2 = transforms.blended_transform_factory(ax.transAxes, ax.transAxes)
 
-                #ax.text(0.02,1.03, "(N PCA, %$\sigma^{2}$)", fontsize=fontsize, horizontalalignment='left',\
-                #        verticalalignment='center', transform=trans2)
 
                 ax.axvspan(6213, 6366, alpha=0.1, color=self.H_color) #H alpha -9000 km/s to -16000 km/s
                 s = r'$\alpha$'
@@ -315,33 +358,33 @@ class SNePCA:
                 #text = '(n PCA = %i,$\sigma^{2}$ =  %.0f'%(n, 100*self.evals_cs[n-1])+'%)'
             ax.text(0.75, 0.3, 'nPC = %i'%(n), fontsize=fontsize, ha='left', va='top', transform=ax.transAxes)
             reconstruct_percent = np.sum(np.abs(pcaCoeff[:n]))/np.sum(np.abs(pcaCoeff))
-            #text = '$\sigma^{2}$ = %.2f'%(100*self.evals_cs[n-1])+'%'
             text = '$\sigma^{2}$ = %.2f'%(100*reconstruct_percent)+'%'
-            #ax.text(0.02, 0.1, text, fontsize=fontsize, ha='left', va='top', transform=ax.transAxes)
             ax.text(0.75, 0.15, text, fontsize=fontsize,ha='left', va='top', transform=ax.transAxes)
             f.axes[-1].set_xlabel(r'${\rm Wavelength\ (\AA)}$',fontsize=fontsize)
-            #f.axes[-1].set_xticklabels(np.arange(4000, 8000, 500),fontsize=fontsize-10)
             f.axes[-1].tick_params(axis='x', length=30, direction="inout", labelsize=fontsize-10)
             f.axes[-1].tick_params(axis='x', which='minor', length=15, direction='inout')
             f.text(0.055, 1.0/2.0, 'Relative Flux', verticalalignment='center', rotation='vertical', fontsize=fontsize)
 
 
-        #ax = plt.subplot(hostgrid[:1,0])
-        #xcumsum = np.arange(len(self.evals_cs)+1)
-        #ycumsum = np.hstack((np.array([0]), self.evals_cs))
-        #ax.scatter(xcumsum, ycumsum, s=150, c='r')
-        #ax.text(5,self.evals_cs[4]-.075,'(5,%.2f)'%(self.evals_cs[4]),fontsize=60,color='r')
-        #ax.plot(xcumsum,ycumsum, linewidth=4.0,c='k')
-        #ax.set_ylabel('Cumulative '+'$\sigma^{2}$', fontsize=65)
-        #ax.set_xlabel('nPC', fontsize=fontsize)
-        #ax.tick_params(axis='both',which='both',labelsize=fontsize-10)
-        #ax.tick_params(axis='x', length=30, direction='inout')
-        #ax.tick_params(axis='x', which='minor', length=15, direction='inout')
-        #ax.xaxis.set_minor_locator(MultipleLocator(5))
         return f, hostgrid
 
 
     def pcaCumPlot(self, figsize, fontsize):
+        """
+        Plots cumulative pca percent of variance captured in sample
+        as a function of number of eigenspectra.
+
+        Parameters
+        ----------
+        figsize : tuple
+        fontsize : int
+
+        Returns
+        -------
+        f : plt.figure
+        ax : figure axis
+
+        """
 
         f = plt.figure(figsize=figsize)
         ax = plt.gca()
@@ -358,102 +401,25 @@ class SNePCA:
         ax.xaxis.set_minor_locator(MultipleLocator(5))
         return f, ax
 
-    def reconstructSpectrum(self, figsize, snname, phasekey, nPCAComponents, fontsize, leg_fontsize, ylim=(-2,2), dytick=1):
-        snobj = self.snidset[snname]
-        datasetMean = np.mean(self.specMatrix, axis=0)
-        trueSpec = snobj.data[phasekey]
-        pcaCoeff = np.dot(self.evecs, (trueSpec - datasetMean))
-        f = plt.figure(figsize=figsize)
-        plt.tick_params(axis='both', which='both', bottom='off', top='off',\
-                            labelbottom='off', labelsize=40, right='off', left='off', labelleft='off')
-        f.subplots_adjust(hspace=0, top=0.95, bottom=0.1, left=0.12, right=0.93)
-        
-        for i, n in enumerate(nPCAComponents):
-            ax = f.add_subplot(411 + i)
-            ax.plot(snobj.wavelengths, trueSpec, c='k', linewidth=4.0, alpha=0.5,label=snname+' True Spectrum')
-            ax.plot(snobj.wavelengths, datasetMean + (np.dot(pcaCoeff[:n], self.evecs[:n])), c='b', linestyle='--', linewidth=4.0,label=snname + ' Reconstruction')
-            ax.tick_params(axis='both',which='both',labelsize=20)
-            if i == 0:
-                ax.legend(loc='lower left', fontsize=leg_fontsize)
-            if i < len(nPCAComponents) - 1:
-                plt.tick_params(
-                axis='x',          # changes apply to the x-axis
-                which='both',      # both major and minor ticks are affected
-                bottom='off',      # ticks along the bottom edge are off
-                top='off',         # ticks along the top edge are off
-                labelbottom='off') # labels along the bottom edge are off
-            ax.set_ylim(ylim)
-            #if i == 0:
-            #    yticks = np.arange(ylim[0], ylim[-1]+dytick, dytick)
-            #else:
-            #    yticks = np.arange(ylim[0] - np.sign(ylim[0])*dytick, ylim[-1], dytick)
-            yticks = np.arange(ylim[0] - np.sign(ylim[0])*dytick, ylim[-1], dytick)
-            ax.set_yticks(yticks)
-            ax.set_yticklabels([])
-            ax.tick_params(axis='y', length=20, direction="inout")
-
-            if i == 0:
-                # Balmer lines
-                trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
-                trans2 = transforms.blended_transform_factory(ax.transAxes, ax.transAxes)
-
-                #ax.text(0.02,1.03, "(N PCA, %$\sigma^{2}$)", fontsize=fontsize, horizontalalignment='left',\
-                #        verticalalignment='center', transform=trans2)
-
-                ax.axvspan(6213, 6366, alpha=0.1, color=self.H_color) #H alpha -9000 km/s to -16000 km/s
-                s = r'$\alpha$'
-                xcord = (6213+6366)/2.0
-                ax.text(xcord, 1.05, 'H'+s, fontsize=fontsize, horizontalalignment='center',\
-                        verticalalignment='center',transform=trans)
-                ax.axvspan(4602, 4715, alpha=0.1, color=self.H_color) #H Beta -9000 km/s to-16000 km/s
-                s = r'$\beta$'
-                xcord = (4602+4715)/2.0
-                ax.text(xcord, 1.05, 'H'+s, fontsize=fontsize, horizontalalignment='center',\
-                        verticalalignment='center',transform=trans)
-                #HeI 5876, 6678, 7065
-                ax.axvspan(5621, 5758, alpha=0.1, color=self.He_color) #HeI5876 -6000 km/s to -13000 km/s
-                ax.text((5621+5758)/2.0, 1.05, 'HeI', fontsize=fontsize, horizontalalignment='center',\
-                        verticalalignment='center', transform=trans)
-                ax.axvspan(6388, 6544, alpha=0.1, color=self.He_color)
-                ax.text((6388+6544)/2.0, 1.05, 'HeI', fontsize=fontsize, horizontalalignment='center',\
-                        verticalalignment='center', transform=trans)
-                ax.axvspan(6729, 6924, alpha=0.1, color=self.He_color)
-                ax.text((6729+6924)/2.0, 1.05, 'HeI', fontsize=fontsize, horizontalalignment='center',\
-                        verticalalignment='center', transform=trans)
- 
-
-
-
-            if i > 0:
-                # Balmer lines
-                trans = transforms.blended_transform_factory(ax.transData, ax.transAxes)
-                ax.axvspan(6213, 6366, alpha=0.1, color=self.H_color) #H alpha -9000 km/s to -16000 km/s
-                ax.axvspan(4602, 4715, alpha=0.1, color=self.H_color) #H Beta -9000 km/s to-16000 km/s
-                ax.axvspan(5621, 5758, alpha=0.1, color=self.He_color) #HeI5876 -6000 km/s to -13000 km/s
-                ax.axvspan(6388, 6544, alpha=0.1, color=self.He_color)
-                ax.axvspan(6729, 6924, alpha=0.1, color=self.He_color)
-            if n == 0:
-                text = 'mean'
-            elif n == 1:
-                text = "1 component\n"
-                text += r"$(\sigma^2_{tot} = %.2f)$" % self.evals_cs[n - 1]
-
-            else:
-                text = "%i components\n" % n
-                text += r"$(\sigma^2_{tot} = %.2f)$" % self.evals_cs[n - 1]
-                #text = '(n PCA = %i,$\sigma^{2}$ =  %.0f'%(n, 100*self.evals_cs[n-1])+'%)'
-            ax.text(0.77, 0.3, 'nPC = %i'%(n), fontsize=fontsize, ha='left', va='top', transform=ax.transAxes)
-            text = '$\sigma^{2}$ = %.2f'%(100*self.evals_cs[n-1])+'%'
-            #ax.text(0.02, 0.1, text, fontsize=fontsize, ha='left', va='top', transform=ax.transAxes)
-            ax.text(0.77, 0.15, text, fontsize=fontsize,ha='left', va='top', transform=ax.transAxes)
-            f.axes[-1].set_xlabel(r'${\rm Wavelength\ (\AA)}$',fontsize=fontsize)
-            f.axes[-1].set_xticklabels(np.arange(4000, 8000, 500),fontsize=fontsize)
-            f.axes[-1].tick_params(axis='x', length=10, direction="inout", labelsize=fontsize)
-            f.text(0.07, 2.0/4.0, 'Relative Flux', verticalalignment='center', rotation='vertical', fontsize=fontsize)
-        return f
 
 
     def plotEigenspectra(self, figsize, nshow, ylim=None, fontsize=16):
+        """
+        Plots the first nshow eigenspectra.
+
+        Parameters
+        ----------
+        figsize : tuple
+        nshow : int
+        ylim : tuple
+        fontsize : int
+
+        Returns
+        -------
+        f : plt.figure
+        hostgrid : GridSpec
+
+        """
         f = plt.figure(figsize=figsize)
         hostgrid = gridspec.GridSpec(3,1)
         hostgrid.update(hspace=0.2)
@@ -528,12 +494,24 @@ class SNePCA:
             if i%4 != 0:
                 tick.set_visible(False)
 
-        #f.text(0.07, 2.0/3.0, 'Relative Flux', verticalalignment='center', rotation='vertical', fontsize=16)
         return f, hostgrid
 
 
 
     def meanTemplateEig(self, figsize):
+        """
+        Plots the meanspectra and first 5 eigenspectra.
+
+        Parameters
+        ----------
+        figsize : tuple
+
+        Returns
+        -------
+        f : plt.figure
+        axs : figure axes
+
+        """
         snIb = readtemplate('Ib')
         snIc = readtemplate('Ic')
         snIIb = readtemplate('IIb')
@@ -544,26 +522,56 @@ class SNePCA:
         axs[0,1], _ = plotPCs(snIb, 'Ib','mediumorchid', axs[0,1], self.evecs[0:5], self.wavelengths,[1,-1,-1,1,-1])
         axs[1,0], _ = plotPCs(snIcBL, 'IcBL','k', axs[1,0], self.evecs[0:5], self.wavelengths,[1,-1,-1,1,-1])
         axs[1,1], lines = plotPCs(snIc, 'Ic','r', axs[1,1], self.evecs[0:5], self.wavelengths,[1,-1,-1,1,-1])
-        #leg = [el[0] for el in lines]
-        #red_patch = mpatches.Patch(color='b', label='Ib Mean Spec', alpha=0.1)
-        #green_patch = mpatches.Patch(color='g', label='IIb Mean Spec', alpha=0.1)
-        #black_patch = mpatches.Patch(color='k', label='IcBL Mean Spec', alpha=0.1)
-        #blue_patch = mpatches.Patch(color='r', label='Ic Mean Spec', alpha=0.1)
-        #leg.append(green_patch)
-        #leg.append(black_patch)
-        #leg.append(red_patch)
-        #leg.append(blue_patch)
-        
-        #plt.figlegend(labels=['PCA1', 'PCA2', 'PCA3', 'PCA4', 'PCA5','IIb Mean Spec', 'IcBL Mean Spec', 'Ib Mean Spec','Ic Mean Spec'],\
-        #              handles=leg, loc=(0.25,.45), ncol=4, fontsize=20)
-        #plt.suptitle('Eigenspectra vs SNe Mean Templates',size=20)
-        #f.savefig('pca_vs_templates.png')
-        #f
         return f, axs
 
 
 
-    def pcaPlot(self, pcax, pcay, figsize, alphamean, alphaell, alphasvm, purity=False, excludeSNe=[], std_rad=None, svm=False, fig=None, ax=None, count=1, svmsc=[], ncv=10, markOutliers=False):
+    def pcaPlot(self, pcax, pcay, figsize, alphamean, alphaell, alphasvm,
+                purity=False, excludeSNe=[], std_rad=None, svm=False,
+                fig=None, ax=None, count=1, svmsc=[], ncv=10, markOutliers=False):
+        """
+
+        Parameters
+        ----------
+        pcax : int
+            Eigenspectrum number for x axis
+        pcay : int
+            Eigenspectrum number of y axis
+        figsize : tuple
+        alphamean : float
+            ALpha for centroid marker
+        alphaell : float
+            Alpha for ellipses
+        alphasvm : float
+            Alpha for SVM regions
+        purity : Boolean
+            Calculates purity of regions if True
+        excludeSNe : list
+            List of SNe not to include in ellipse calculation
+        std_rad : float
+            putiry within std_rad number of radii
+        svm : Boolean
+            Plots SVM regions if True
+        fig : plt.figure
+        ax : figure axis
+        count : int
+        svmsc : list
+            SVM scores for each CV iteration of SVM
+        ncv : int
+            Number of cross validation runs
+        markOutliers : Boolean
+            Marks outliers if True
+
+        Returns
+        -------
+        f : plt.figure
+        svmsc : list
+        avgsc : float
+            average CV SVM score
+        stdsc : float
+            CV SVM score standard deviation
+
+        """
         if fig is None:
             f = plt.figure(figsize=figsize)
         else:
@@ -653,16 +661,7 @@ class SNePCA:
                 cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=nbins)
                 Z = Z.reshape(mesh_x.shape)
                 out = ax.contourf(mesh_x, mesh_y, Z, cmap=cm, alpha=0.2/alphasvm)
-            
-
-
-
-
                 svmsc.append(score)
-
-
-
-
         if purity:
             nameMask = self.getSNeNameMask(excludeSNe)
             print('rad namemask: ',nameMask)
@@ -778,6 +777,13 @@ class SNePCA:
 
 
     def purityEllipse(self, std_rad, ncomp_array):
+        """
+        Calculates the purity of the SESN regions
+
+        Returns
+        -------
+
+        """
         ncomp_array = np.array(ncomp_array) - 1
         IIbMask, IbMask, IcMask, IcBLMask = self.getSNeTypeMasks()
         maskDict = {'IIb':IIbMask, 'Ib':IbMask, 'IcBL':IcBLMask, 'Ic':IcMask}
@@ -814,6 +820,20 @@ class SNePCA:
 
 
     def pcaPlotly(self, pcaxind, pcayind, std_rad, excludeSNe=[]):
+        """
+        Makes PCA plot interactively using Plotly. Does not show SVM regions.
+
+        Parameters
+        ----------
+        pcaxind : int
+        pcayind : int
+        std_rad : int
+        excludeSNe : list
+
+        Returns
+        -------
+
+        """
         IIbmask, Ibmask, Icmask, IcBLmask = self.getSNeTypeMasks()
         pcax = self.pcaCoeffMatrix[:,pcaxind - 1]
         pcay = self.pcaCoeffMatrix[:,pcayind - 1]
@@ -956,10 +976,33 @@ class SNePCA:
 
     def cornerplotPCA(self, ncomp, figsize, svm=False, ncv=1):
         """
-Plots the 2D marginalizations of the PCA decomposition in a corner plot.
-Arguments:
-    ncomp -- Number of PCA components to include in the 2D marginalization. It is best to ignore the high order components that only capture noise.
-    figsize -- Size of the figure.
+        Plots the 2D marginalizations of the PCA decomposition in a corner plot.
+
+        Parameters
+        ----------
+        ncomp : int
+            Number of PCA components in corner plot
+        figsize : tuple
+        svm : Boolean
+            Calculates SVM scores if True
+        ncv : int
+            Number of cross validation runs
+
+        Returns
+        -------
+        f : plt.figure
+        svm_highscore : float
+            highest svm avg score
+        svm_x : int
+            x ind of best pca component
+        svm_y : int
+            y ind of best pca component
+        means_table : pandas Data Table
+            average svm scores of the 2D marginalizations
+        std_table : pandas Data Table
+            standard deviations of svm scores for
+            the 2D marginalizations
+
         """
         red_patch = mpatches.Patch(color=self.Ic_color, label='Ic')
         cyan_patch = mpatches.Patch(color=self.Ib_color, label='Ib')
