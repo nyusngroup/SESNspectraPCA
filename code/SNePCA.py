@@ -32,12 +32,26 @@ import pylab as pl
 
 
 def readtemplate(tp):
+    """
+    Quick function for reading in meanspec templates.
+
+    Parameters
+    ----------
+    tp : string
+        SN type
+
+    Returns
+    -------
+    s : meanspec .sav file.
+
+    """
     if tp=='IcBL':
         s = readsav('PCvsTemplates/meanspec%s_1specperSN_15_ft.sav'%tp)
     else:
         s = readsav('PCvsTemplates/meanspec%s_1specperSN_15.sav'%tp)
 
     return s
+
 def plotPCs(s, tp, c, ax, eig, ewav, sgn):
     lines = []
     for i,e in enumerate(eig):
@@ -77,15 +91,16 @@ def make_meshgrid(x, y, h=.02):
 
 
 def plot_contours(ax, clf, xx, yy, alphasvm):
-    """Plot the decision boundaries for a classifier.
+    """
+    Plot the decision boundaries for a classifier.
 
     Parameters
     ----------
-    ax: matplotlib axes object
-    clf: a classifier
-    xx: meshgrid ndarray
-    yy: meshgrid ndarray
-    params: dictionary of params to pass to contourf, optional
+    ax : matplotlib axes object
+    clf : a classifier
+    xx : meshgrid ndarray
+    yy : meshgrid ndarray
+    alphasvm : float
     """
     Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
 
@@ -154,11 +169,30 @@ class SNePCA:
         return
 
     def getSNeNameMask(self, excludeSNe):
+        """
+        Returns a mask to filter out the named SNe in excludeSNe.
+
+        Parameters
+        ----------
+        excludeSNe : list
+            list of strings that are SN names.
+
+        Returns
+        -------
+        nameMask : np.array
+
+        """
         allNames = list(self.snidset.keys())
         nameMask = np.logical_not(np.isin(allNames, excludeSNe))
         return nameMask
 
     def getSNeTypeMasks(self):
+        """
+        Returns
+        -------
+        Masks that select each of the 4 major SESN types.
+
+        """
         snnames = list(self.snidset.keys())
         snnames = self.pcaNames
         typeinfo = snid.datasetTypeDict(self.snidset)
@@ -176,6 +210,12 @@ class SNePCA:
 
 
     def snidPCA(self):
+        """
+        Calculates PCA eigenspectra and stores them in self.evecs
+        Returns
+        -------
+
+        """
         pca = PCA()
         pca.fit(self.specMatrix)
         self.evecs = pca.components_
@@ -184,6 +224,13 @@ class SNePCA:
         return
 
     def calcPCACoeffs(self):
+        """
+        Calculates the pca coefficients for all spectra and stores
+        them in self.pcaCoeffMatrix
+        Returns
+        -------
+
+        """
         self.pcaCoeffMatrix = np.dot(self.evecs, self.specMatrix.T).T
 
         for i, snname in enumerate(list(self.snidset.keys())):
@@ -196,7 +243,36 @@ class SNePCA:
 
 
 
-    def reconstructSpectrumGrid(self, figsize, snname, phasekey, Nhostgrid, nPCAComponents, fontsize, leg_fontsize, ylim=(-2,2), dytick=1):
+    def reconstructSpectrumGrid(self, figsize, snname, phasekey,
+                                Nhostgrid, nPCAComponents, fontsize,
+                                leg_fontsize, ylim=(-2,2), dytick=1):
+        """
+        Reconstructs the spectrum of snname at phase phasekey.
+
+        Parameters
+        ----------
+        figsize : tuple
+        snname : string
+            name of SN
+        phasekey : string
+            phase of spectrum
+        Nhostgrid : int
+            Number of subgrids
+        nPCAComponents : list
+            list of options for number of
+            eigenspectra to include in reconstruction.
+        fontsize : int
+        leg_fontsize : int
+            legend fontsize
+        ylim : tuple
+        dytick : int
+
+        Returns
+        -------
+        f : plt.figure
+        hostgrid : GridSpec
+
+        """
         
         f = plt.figure(figsize=figsize)
         hostgrid = gridspec.GridSpec(Nhostgrid,1)
@@ -294,6 +370,21 @@ class SNePCA:
 
 
     def pcaCumPlot(self, figsize, fontsize):
+        """
+        Plots cumulative pca percent of variance captured in sample
+        as a function of number of eigenspectra.
+
+        Parameters
+        ----------
+        figsize : tuple
+        fontsize : int
+
+        Returns
+        -------
+        f : plt.figure
+        ax : figure axis
+
+        """
 
         f = plt.figure(figsize=figsize)
         ax = plt.gca()
