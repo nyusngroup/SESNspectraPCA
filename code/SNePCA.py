@@ -404,6 +404,22 @@ class SNePCA:
 
 
     def plotEigenspectra(self, figsize, nshow, ylim=None, fontsize=16):
+        """
+        Plots the first nshow eigenspectra.
+
+        Parameters
+        ----------
+        figsize : tuple
+        nshow : int
+        ylim : tuple
+        fontsize : int
+
+        Returns
+        -------
+        f : plt.figure
+        hostgrid : GridSpec
+
+        """
         f = plt.figure(figsize=figsize)
         hostgrid = gridspec.GridSpec(3,1)
         hostgrid.update(hspace=0.2)
@@ -483,6 +499,19 @@ class SNePCA:
 
 
     def meanTemplateEig(self, figsize):
+        """
+        Plots the meanspectra and first 5 eigenspectra.
+
+        Parameters
+        ----------
+        figsize : tuple
+
+        Returns
+        -------
+        f : plt.figure
+        axs : figure axes
+
+        """
         snIb = readtemplate('Ib')
         snIc = readtemplate('Ic')
         snIIb = readtemplate('IIb')
@@ -497,7 +526,52 @@ class SNePCA:
 
 
 
-    def pcaPlot(self, pcax, pcay, figsize, alphamean, alphaell, alphasvm, purity=False, excludeSNe=[], std_rad=None, svm=False, fig=None, ax=None, count=1, svmsc=[], ncv=10, markOutliers=False):
+    def pcaPlot(self, pcax, pcay, figsize, alphamean, alphaell, alphasvm,
+                purity=False, excludeSNe=[], std_rad=None, svm=False,
+                fig=None, ax=None, count=1, svmsc=[], ncv=10, markOutliers=False):
+        """
+
+        Parameters
+        ----------
+        pcax : int
+            Eigenspectrum number for x axis
+        pcay : int
+            Eigenspectrum number of y axis
+        figsize : tuple
+        alphamean : float
+            ALpha for centroid marker
+        alphaell : float
+            Alpha for ellipses
+        alphasvm : float
+            Alpha for SVM regions
+        purity : Boolean
+            Calculates purity of regions if True
+        excludeSNe : list
+            List of SNe not to include in ellipse calculation
+        std_rad : float
+            putiry within std_rad number of radii
+        svm : Boolean
+            Plots SVM regions if True
+        fig : plt.figure
+        ax : figure axis
+        count : int
+        svmsc : list
+            SVM scores for each CV iteration of SVM
+        ncv : int
+            Number of cross validation runs
+        markOutliers : Boolean
+            Marks outliers if True
+
+        Returns
+        -------
+        f : plt.figure
+        svmsc : list
+        avgsc : float
+            average CV SVM score
+        stdsc : float
+            CV SVM score standard deviation
+
+        """
         if fig is None:
             f = plt.figure(figsize=figsize)
         else:
@@ -703,6 +777,13 @@ class SNePCA:
 
 
     def purityEllipse(self, std_rad, ncomp_array):
+        """
+        Calculates the purity of the SESN regions
+
+        Returns
+        -------
+
+        """
         ncomp_array = np.array(ncomp_array) - 1
         IIbMask, IbMask, IcMask, IcBLMask = self.getSNeTypeMasks()
         maskDict = {'IIb':IIbMask, 'Ib':IbMask, 'IcBL':IcBLMask, 'Ic':IcMask}
@@ -739,6 +820,20 @@ class SNePCA:
 
 
     def pcaPlotly(self, pcaxind, pcayind, std_rad, excludeSNe=[]):
+        """
+        Makes PCA plot interactively using Plotly. Does not show SVM regions.
+
+        Parameters
+        ----------
+        pcaxind : int
+        pcayind : int
+        std_rad : int
+        excludeSNe : list
+
+        Returns
+        -------
+
+        """
         IIbmask, Ibmask, Icmask, IcBLmask = self.getSNeTypeMasks()
         pcax = self.pcaCoeffMatrix[:,pcaxind - 1]
         pcay = self.pcaCoeffMatrix[:,pcayind - 1]
@@ -881,10 +976,33 @@ class SNePCA:
 
     def cornerplotPCA(self, ncomp, figsize, svm=False, ncv=1):
         """
-Plots the 2D marginalizations of the PCA decomposition in a corner plot.
-Arguments:
-    ncomp -- Number of PCA components to include in the 2D marginalization. It is best to ignore the high order components that only capture noise.
-    figsize -- Size of the figure.
+        Plots the 2D marginalizations of the PCA decomposition in a corner plot.
+
+        Parameters
+        ----------
+        ncomp : int
+            Number of PCA components in corner plot
+        figsize : tuple
+        svm : Boolean
+            Calculates SVM scores if True
+        ncv : int
+            Number of cross validation runs
+
+        Returns
+        -------
+        f : plt.figure
+        svm_highscore : float
+            highest svm avg score
+        svm_x : int
+            x ind of best pca component
+        svm_y : int
+            y ind of best pca component
+        means_table : pandas Data Table
+            average svm scores of the 2D marginalizations
+        std_table : pandas Data Table
+            standard deviations of svm scores for
+            the 2D marginalizations
+
         """
         red_patch = mpatches.Patch(color=self.Ic_color, label='Ic')
         cyan_patch = mpatches.Patch(color=self.Ib_color, label='Ib')
