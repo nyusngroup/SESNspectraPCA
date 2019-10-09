@@ -182,7 +182,8 @@ class SNePCA:
         nameMask : np.array
 
         """
-        allNames = list(self.snidset.keys())
+        #allNames = list(self.snidset.keys())
+        allNames = self.pcaNames
         nameMask = np.logical_not(np.isin(allNames, excludeSNe))
         return nameMask
 
@@ -592,38 +593,38 @@ class SNePCA:
 
         #centroids
         nameMask = self.getSNeNameMask(excludeSNe)
-        print(np.array(list(self.snidset.keys()))[nameMask])
-        print('IIb')
+        #print(np.array(list(self.snidset.keys()))[nameMask])
+        #print('IIb')
         IIbxmean = np.mean(x[np.logical_and(IIbMask, nameMask)])
         IIbymean = np.mean(y[np.logical_and(IIbMask, nameMask)])
-        print('IIb - x: ',x[np.logical_and(IIbMask, nameMask)])
-        print('IIb - y: ',y[np.logical_and(IIbMask, nameMask)])
-        print('mean = ',(IIbxmean, IIbymean))
+        #print('IIb - x: ',x[np.logical_and(IIbMask, nameMask)])
+        #print('IIb - y: ',y[np.logical_and(IIbMask, nameMask)])
+        #print('mean = ',(IIbxmean, IIbymean))
 
-        print('Ib')
+        #print('Ib')
         Ibxmean = np.mean(x[np.logical_and(IbMask, nameMask)])
-        print(x[np.logical_and(IbMask, nameMask)].shape)
-        print(x[IbMask].shape)
+        #print(x[np.logical_and(IbMask, nameMask)].shape)
+        #print(x[IbMask].shape)
         Ibymean = np.mean(y[np.logical_and(IbMask, nameMask)])
-        print('Ib - x: ',x[np.logical_and(IbMask, nameMask)])
-        print('Ib - y: ',y[np.logical_and(IbMask, nameMask)])
-        print('mean = ',(Ibxmean, Ibymean))
+        #print('Ib - x: ',x[np.logical_and(IbMask, nameMask)])
+        #print('Ib - y: ',y[np.logical_and(IbMask, nameMask)])
+        #print('mean = ',(Ibxmean, Ibymean))
 
-        print('Ic')
+        #print('Ic')
         Icxmean = np.mean(x[np.logical_and(IcMask, nameMask)])
         Icymean = np.mean(y[np.logical_and(IcMask, nameMask)])
-        print('Ic - x: ',x[np.logical_and(IcMask, nameMask)])
-        print('Ic - y: ',y[np.logical_and(IcMask, nameMask)])
-        print("mask mean: ",Ibxmean, Ibymean)
-        print("no mask mean: ", np.mean(x[IbMask]), np.mean(y[IbMask]))
-        print('mean = ',(Icxmean, Icymean))
+        #print('Ic - x: ',x[np.logical_and(IcMask, nameMask)])
+        #print('Ic - y: ',y[np.logical_and(IcMask, nameMask)])
+        #print("mask mean: ",Ibxmean, Ibymean)
+        #print("no mask mean: ", np.mean(x[IbMask]), np.mean(y[IbMask]))
+        #print('mean = ',(Icxmean, Icymean))
 
-        print('IcBL')
-        print('IcBL - x: ',x[np.logical_and(IcBLMask, nameMask)])
-        print('IcBL - y: ',y[np.logical_and(IcBLMask, nameMask)])
+        #print('IcBL')
+        #print('IcBL - x: ',x[np.logical_and(IcBLMask, nameMask)])
+        #print('IcBL - y: ',y[np.logical_and(IcBLMask, nameMask)])
         IcBLxmean = np.mean(x[np.logical_and(IcBLMask, nameMask)])
         IcBLymean = np.mean(y[np.logical_and(IcBLMask, nameMask)])
-        print('mean = ',(IcBLxmean, IcBLymean))
+        #print('mean = ',(IcBLxmean, IcBLymean))
 
 
         if svm:
@@ -656,6 +657,7 @@ class SNePCA:
                     colors.append(self.Ic_color)
                 if IcBLZ != 0:
                     colors.append(self.IcBL_color)
+                print(colors)
                 nbins = len(colors)
                 cmap_name = 'mymap'
                 cm = LinearSegmentedColormap.from_list(cmap_name, colors, N=nbins)
@@ -664,7 +666,7 @@ class SNePCA:
                 svmsc.append(score)
         if purity:
             nameMask = self.getSNeNameMask(excludeSNe)
-            print('rad namemask: ',nameMask)
+            #print('rad namemask: ',nameMask)
             IIb_rad_x = np.std(x[np.logical_and(IIbMask, nameMask)]) * std_rad
             Ib_rad_x = np.std(x[np.logical_and(IbMask, nameMask)]) * std_rad
             Ic_rad_x = np.std(x[np.logical_and(IcMask, nameMask)]) * std_rad
@@ -677,48 +679,49 @@ class SNePCA:
 
 
 
-            print('IIb radx, rady',(IIb_rad_x, IIb_rad_y))
-            print('Ib radx, rady',(Ib_rad_x, Ib_rad_y))
-            print('Ic radx, rady',(Ic_rad_x, Ic_rad_y))
-            print('IcBL radx, rady',(IcBL_rad_x, IcBL_rad_y))
+            #print('IIb radx, rady',(IIb_rad_x, IIb_rad_y))
+            #print('Ib radx, rady',(Ib_rad_x, Ib_rad_y))
+            #print('Ic radx, rady',(Ic_rad_x, Ic_rad_y))
+            #print('IcBL radx, rady',(IcBL_rad_x, IcBL_rad_y))
 
 
-            print("rad mask: ",Ib_rad_x, Ib_rad_y)
-            print("rad all: ",np.std(x[IbMask]), np.std(y[IbMask]))
-            print('names all: ',np.array(list(self.snidset.keys()))[IbMask])
+            #print("rad mask: ",Ib_rad_x, Ib_rad_y)
+            #print("rad all: ",np.std(x[IbMask]), np.std(y[IbMask]))
+           # print('names all: ',np.array(list(self.snidset.keys()))[IbMask])
 
-            names = np.array(list(self.snidset.keys()))
+            #names = np.array(list(self.snidset.keys()))
+            names = self.pcaNames
             IIbnames = names[IIbMask]
             dist_x = np.power(x[IIbMask] - IIbxmean, 2)/np.power(2*IIb_rad_x, 2)
             dist_y = np.power(y[IIbMask] - IIbymean, 2)/np.power(2*IIb_rad_y, 2)
-            outliers_mask = dist_x + dist_y >= 1
-            print('IIb 2std outliers: ', IIbnames[outliers_mask])
-            IIb_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(IIbnames[outliers_mask])), IIbMask)
-            IIb_no_out_mask = np.logical_and(self.getSNeNameMask(IIbnames[outliers_mask]), IIbMask)
+            IIb_outliers_mask = dist_x + dist_y >= 1
+            #print('IIb 2std outliers: ', IIbnames[outliers_mask])
+            #IIb_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(IIbnames[outliers_mask])), IIbMask)
+            #IIb_no_out_mask = np.logical_and(self.getSNeNameMask(IIbnames[outliers_mask]), IIbMask)
 
             Ibnames = names[IbMask]
             dist_x = np.power(x[IbMask] - Ibxmean, 2)/np.power(2*Ib_rad_x, 2)
             dist_y = np.power(y[IbMask] - Ibymean, 2)/np.power(2*Ib_rad_y, 2)
-            outliers_mask = dist_x + dist_y >= 1
-            print('Ib 2std outliers: ', Ibnames[outliers_mask])
-            Ib_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(Ibnames[outliers_mask])), IbMask)
-            Ib_no_out_mask = np.logical_and(self.getSNeNameMask(Ibnames[outliers_mask]), IbMask)
+            Ib_outliers_mask = dist_x + dist_y >= 1
+            #print('Ib 2std outliers: ', Ibnames[outliers_mask])
+            #Ib_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(Ibnames[outliers_mask])), IbMask)
+            #Ib_no_out_mask = np.logical_and(self.getSNeNameMask(Ibnames[outliers_mask]), IbMask)
            
             Icnames = names[IcMask]
             dist_x = np.power(x[IcMask] - Icxmean, 2)/np.power(2*Ic_rad_x, 2)
             dist_y = np.power(y[IcMask] - Icymean, 2)/np.power(2*Ic_rad_y, 2)
-            outliers_mask = dist_x + dist_y >= 1
-            print('Ic 2std outliers: ', Icnames[outliers_mask])
-            Ic_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(Icnames[outliers_mask])), IcMask)
-            Ic_no_out_mask = np.logical_and(self.getSNeNameMask(Icnames[outliers_mask]), IcMask)
+            Ic_outliers_mask = dist_x + dist_y >= 1
+            #print('Ic 2std outliers: ', Icnames[outliers_mask])
+            #Ic_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(Icnames[outliers_mask])), IcMask)
+            #Ic_no_out_mask = np.logical_and(self.getSNeNameMask(Icnames[outliers_mask]), IcMask)
 
             IcBLnames = names[IcBLMask]
             dist_x = np.power(x[IcBLMask] - IcBLxmean, 2)/np.power(2*IcBL_rad_x, 2)
             dist_y = np.power(y[IcBLMask] - IcBLymean, 2)/np.power(2*IcBL_rad_y, 2)
-            outliers_mask = dist_x + dist_y >= 1
-            print('IcBL 2std outliers: ', IcBLnames[outliers_mask])
-            IcBL_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(IcBLnames[outliers_mask])), IcBLMask)
-            IcBL_no_out_mask = np.logical_and(self.getSNeNameMask(IcBLnames[outliers_mask]), IcBLMask)
+            IcBL_outliers_mask = dist_x + dist_y >= 1
+            #print('IcBL 2std outliers: ', IcBLnames[outliers_mask])
+            #IcBL_out_only_mask = np.logical_and(np.logical_not(self.getSNeNameMask(IcBLnames[outliers_mask])), IcBLMask)
+            #IcBL_no_out_mask = np.logical_and(self.getSNeNameMask(IcBLnames[outliers_mask]), IcBLMask)
 
 
             ellipse_IIb = mpatches.Ellipse((IIbxmean, IIbymean),2*IIb_rad_x,2*IIb_rad_y, \
@@ -736,16 +739,16 @@ class SNePCA:
 
         if markOutliers:
 
-            ax.scatter(x[IIb_no_out_mask], y[IIb_no_out_mask], color=self.IIb_color, edgecolors='k',s=200,alpha=1,linewidth=2.0)
-            ax.scatter(x[Ib_no_out_mask], y[Ib_no_out_mask], color=self.Ib_color, edgecolors='k',s=200,alpha=1, linewidth=2.0)
-            ax.scatter(x[Ic_no_out_mask], y[Ic_no_out_mask], color=self.Ic_color, edgecolors='k',s=200,alpha=1, linewidth=2.0)
-            ax.scatter(x[IcBL_no_out_mask], y[IcBL_no_out_mask], color=self.IcBL_color, edgecolors='k',s=200,alpha=1, linewidth=2.0)
+            ax.scatter(x[IIbMask][np.logical_not(IIb_outliers_mask)], y[IIbMask][np.logical_not(IIb_outliers_mask)], color=self.IIb_color, edgecolors='k',s=200,alpha=1,linewidth=2.0)
+            ax.scatter(x[IbMask][np.logical_not(Ib_outliers_mask)], y[IbMask][np.logical_not(Ib_outliers_mask)], color=self.Ib_color, edgecolors='k',s=200,alpha=1, linewidth=2.0)
+            ax.scatter(x[IcMask][np.logical_not(Ic_outliers_mask)], y[IcMask][np.logical_not(Ic_outliers_mask)], color=self.Ic_color, edgecolors='k',s=200,alpha=1, linewidth=2.0)
+            ax.scatter(x[IcBLMask][np.logical_not(IcBL_outliers_mask)], y[IcBLMask][np.logical_not(IcBL_outliers_mask)], color=self.IcBL_color, edgecolors='k',s=200,alpha=1, linewidth=2.0)
 
 
-            ax.scatter(x[IIb_out_only_mask], y[IIb_out_only_mask], color=self.IIb_color, edgecolors='k',s=400,alpha=1,linewidth=2.0, marker='*')
-            ax.scatter(x[Ib_out_only_mask], y[Ib_out_only_mask], color=self.Ib_color, edgecolors='k',s=400,alpha=1, linewidth=2.0, marker='*')
-            ax.scatter(x[Ic_out_only_mask], y[Ic_out_only_mask], color=self.Ic_color, edgecolors='k',s=400,alpha=1, linewidth=2.0, marker='*')
-            ax.scatter(x[IcBL_out_only_mask], y[IcBL_out_only_mask], color=self.IcBL_color, edgecolors='k',s=400,alpha=1, linewidth=2.0, marker='*')
+            ax.scatter(x[IIbMask][IIb_outliers_mask], y[IIbMask][IIb_outliers_mask], color=self.IIb_color, edgecolors='k',s=400,alpha=1,linewidth=2.0, marker='*')
+            ax.scatter(x[IbMask][Ib_outliers_mask], y[IbMask][Ib_outliers_mask], color=self.Ib_color, edgecolors='k',s=400,alpha=1, linewidth=2.0, marker='*')
+            ax.scatter(x[IcMask][Ic_outliers_mask], y[IcMask][Ic_outliers_mask], color=self.Ic_color, edgecolors='k',s=400,alpha=1, linewidth=2.0, marker='*')
+            ax.scatter(x[IcBLMask][IcBL_outliers_mask], y[IcBLMask][IcBL_outliers_mask], color=self.IcBL_color, edgecolors='k',s=400,alpha=1, linewidth=2.0, marker='*')
 
         else:
             ax.scatter(x[IIbMask], y[IIbMask], color=self.IIb_color, edgecolors='k',s=200,alpha=1,linewidth=2.0)
