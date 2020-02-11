@@ -247,6 +247,48 @@ def interpGaps(dataset, minwvl, maxwvl, maxgapsize):
                 snobj.interp1dSpec(col, interpWvlStart, interpWvlEnd)
     return
 
+def datasetReduceResolution(dataset, factor, dropLeft=True):
+    """
+    For each SNIDsn object in the dataset, reduce the resolution by a
+    constant factor.
+
+    Parameters
+    ----------
+    dataset : SNIDdataset object
+    factor : float
+        Factor by which the logspaced wavelength bin length is increased.
+    dropLeft : Boolean
+        whether to drop incomplete bins at the new resolution from the
+        left or the right.
+
+    Returns
+    -------
+
+    """
+    for snname in list(dataset.keys()):
+        snobj = dataset[snname]
+        snobj.reduceResolution(factor, dropLeft=dropLeft)
+    return
+
+def datasetNoiseFlux(dataset):
+    """
+    Replaces all spectra for each SNIDsn obj in the dataset with
+    np.random.random noise.
+
+    Parameters
+    ----------
+    dataset : SNIDdataset object
+
+    Returns
+    -------
+
+    """
+    for snname in list(dataset.keys()):
+        snobj = dataset[snname]
+        snobj.noiseSpectrum()
+    return
+
+
 def datasetWavelengthRange(dataset, minwvl, maxwvl):
     """
     For each SNIDsn object in the dataset, filters all spectra to the specified wvl range.
