@@ -270,6 +270,24 @@ def datasetReduceResolution(dataset, factor, dropLeft=True):
         snobj.reduceResolution(factor, dropLeft=dropLeft)
     return
 
+def datasetNoiseFlux(dataset):
+    """
+    Replaces all spectra for each SNIDsn obj in the dataset with
+    np.random.random noise.
+
+    Parameters
+    ----------
+    dataset : SNIDdataset object
+
+    Returns
+    -------
+
+    """
+    for snname in list(dataset.keys()):
+        snobj = dataset[snname]
+        snobj.noiseSpectrum()
+    return
+
 
 def datasetWavelengthRange(dataset, minwvl, maxwvl):
     """

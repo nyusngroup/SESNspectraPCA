@@ -604,6 +604,20 @@ class SNIDsn:
         return
 
 
+    def noiseSpectrum(self):
+        tmp = []
+        for phkey in self.data.dtype.names:
+            flux_noise = np.random.random(len(self.wavelengths))
+            tmp.append(flux_noise)
+        tmp = np.array(tmp).T
+        noise_flux = []
+        for i in range(len(tmp)):
+            tup = tuple(tmp[i])
+            noise_flux.append(tup)
+        noise_flux = np.array(noise_flux, dtype=self.data.dtype)
+        self.data = noise_flux
+        return
+
     def reduceResolution(self, factor, dropLeft=True):
         """
         Reduces the resolution by a factor. Assumes that the spectrum is
