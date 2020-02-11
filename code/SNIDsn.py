@@ -109,6 +109,127 @@ def getType(tp, subtp):
     return sntype, snsubtype
 
 
+def bin_centers_to_edges(centers):
+    """Converts bin centers to bin edges. Assumes bins are logspaced."""
+    log_centers = np.log10(centers)
+    bin_rad = np.diff(log_centers)[0]/2.0
+    edges = [center - bin_rad for center in log_centers]
+    edges.append(log_centers[-1] + bin_rad)
+    return np.power(10, np.array(edges))
+
+def bin_edges_to_centers(edges):
+    """Converts bin edges to centers. Assumes bins are logspaced."""
+    log_edges = np.log10(edges)
+    bin_rad = np.diff(log_edges)[0] / 2.0
+    centers = log_edges[:-1] + bin_rad
+    return np.power(10, centers)
+
+
+def rebin_resolution(wvl, resolution_factor, dropleft=True):
+    """
+    Parameters
+    ----------
+    wvl : np.ndarray
+        Original logspaced bin edges.
+    resolution_factor : float
+        Factor to reduce original resolution by.
+
+    Returns
+    -------
+    new_wvl : np.ndarray
+        New logspaced bin edges.
+    """
+
+    num_orig_bins = len(wvl) - 1
+    orig_wvl_start = wvl[0]
+    orig_wvl_end = wvl[-1]
+    orig_bin_rad = np.diff(np.log10(wvl))[0] / 2.0
+    new_bin_rad = resolution_factor * orig_bin_rad
+    if dropleft:
+        start = np.log10(orig_wvl_end)
+        end = np.log10(orig_wvl_start)
+        if num_orig_bins % resolution_factor == 0:
+            end = end - new_bin_rad
+        new_bins = np.arange(start, end, -2 * new_bin_rad)[::-1]
+    else:
+        start = np.log10(orig_wvl_start)
+        end = np.log10(orig_wvl_end)
+        if num_orig_bins % resolution_factor == 0:
+            end = end + new_bin_rad
+        new_bins = np.arange(start, end, 2 * new_bin_rad)
+    return np.power(10, new_bins)
+
+
+def new_bin_old_bin_overlap(new_center, new_bin_rad, old_edges):
+    """
+    Parameters
+    ----------
+    new_center : float
+        Center of new bin.
+    new_bin_rad : float
+        Radius of new bin in logspace.
+    old_edges : np.ndarray
+        Original bin edges.
+
+    Returns
+    -------
+    overlap : np.ndarray
+        Fractional overlap of old bins inside new bin.
+    """
+    new_log_center = np.around(np.log10(new_center), 8)
+    old_log_edges = np.around(np.log10(old_edges), 8)
+    old_logbin_width = np.around(np.diff(old_log_edges)[0], 8)
+    new_left_edge = np.around(new_log_center - new_bin_rad, 8)
+    new_right_edge = np.around(new_log_center + new_bin_rad, 8)
+
+    left_ind_in_old_bins = np.searchsorted(old_log_edges, new_left_edge, side='right')
+    import pdb
+    # pdb.set_trace()
+    right_ind_in_old_bins = np.searchsorted(old_log_edges, new_right_edge, side='left')
+
+    overlap = np.zeros(len(old_edges) - 1)
+
+    left_overlap = (old_log_edges[left_ind_in_old_bins] - new_left_edge) / old_logbin_width
+    right_overlap = (new_right_edge - old_log_edges[right_ind_in_old_bins - 1]) / old_logbin_width
+
+    overlap[left_ind_in_old_bins - 1] = left_overlap
+    overlap[right_ind_in_old_bins - 1] = right_overlap
+    overlap[left_ind_in_old_bins: right_ind_in_old_bins - 1] = 1.0
+    return overlap
+
+
+def rebin_fluxes(old_fluxes, old_wvl_centers, new_wvl_centers):
+    """
+    Parameters
+    ----------
+    old_fluxes : np.ndarray
+        Old fluxes.
+    old_wvl_centers : np.ndarray
+        Old wvl centers.
+    new_wvl_centers : np.ndarray
+        New wvl centers.
+
+    Returns
+    -------
+    new_fluxes : np.ndarray
+        New fluxes.
+    """
+
+    overlap_matrix = np.ndarray((len(new_wvl_centers), len(old_wvl_centers)))
+    old_wvl_edges = bin_centers_to_edges(old_wvl_centers)
+    new_bin_rad = np.diff(np.log10(new_wvl_centers))[0] / 2.0
+
+    for i in range(len(new_wvl_centers)):
+        print(i, new_wvl_centers[i])
+
+        bin_center = new_wvl_centers[i]
+        overlap_arr = new_bin_old_bin_overlap(bin_center, new_bin_rad, old_wvl_edges)
+        overlap_matrix[i, :] = overlap_arr
+
+    return np.matmul(overlap_matrix, old_fluxes)
+
+
+
 def largeGapsInRange(gaps, minwvl, maxwvl, maxgapsize):
     """
     Given a list of gaps, min and max wavelengths, and a maximum acceptable gap size,
@@ -481,6 +602,44 @@ class SNIDsn:
         specStd = np.std(self.data[phasekey])
         self.data[phasekey] = (self.data[phasekey] - specMean)/specStd
         return
+
+
+    def reduceResolution(self, factor, dropLeft=True):
+        """
+        Reduces the resolution by a factor. Assumes that the spectrum is
+        binned in logspace. Rebins the wavelengths and the fluxes accordingly.
+
+        Parameters
+        ----------
+        factor : np.float
+            Factor by which logspaced bin width is increased.
+        dropLeft : Boolean
+            whether to drop incomplete bins at the new resolution from the left
+            or the right.
+
+        Returns
+        -------
+
+        """
+        wvl_edges = bin_centers_to_edges(self.wavelengths)
+        new_wvl_edges = rebin_resolution(wvl_edges, factor, dropleft=dropLeft)
+        new_wvl_centers = bin_edges_to_centers(new_wvl_edges)
+        new_fluxes = []
+        for phkey in self.data.dtype.names:
+            flux = self.data[phkey]
+            new_flux = rebin_fluxes(flux, self.wavelengths, new_wvl_centers)
+            new_fluxes.append(new_flux)
+        tmp = []
+        new_fluxes = np.array(new_fluxes).T
+        for i in range(len(new_fluxes)):
+            tup = tuple(new_fluxes[i])
+            tmp.append(tup)
+        new_dat = np.array(tmp, dtype=self.data.dtype)
+        self.data = new_dat
+        self.wavelengths = new_wvl_centers
+        return
+
+
 
     def restoreContinuum(self, verbose=False, spl_a_ind=0, spl_b_ind=-1):
         """
