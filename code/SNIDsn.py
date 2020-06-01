@@ -407,6 +407,7 @@ class SNIDsn:
         -------
 
         """
+        assert lnwfile[-3:] == 'lnw' #file must be .lnw
         with open(lnwfile) as lnw:
             lines = lnw.readlines()
             lnw.close()
@@ -463,7 +464,51 @@ class SNIDsn:
             continuum[ind - 1] = np.array([float(x) for x in cont_line])
         self.continuum = continuum
         return
-
+    
+    def loadSN(self, file, phaseType):
+        assert file[-3:] != 'lnw' #file cannot be .lnw
+        self.phaseType = phaseType
+        with open(file) as file:
+            lines = file.readlines()
+            file.close()
+        header_line = lines[0].strip()
+        header_items = header_line.split()
+        assert len(header_items) == 2 #can only have 2 headers
+        for item in header_items:
+            assert item == "wavelength" or item == "flux" #headers can only be flux or wavelength
+        
+        phase_items = lines[1].strip().split()
+        phases = np.array([float(ph) for ph in phase_items[1:]])
+        self.phases = phases
+        colnumber = len(phases)
+            
+        wavelength_index = 0
+        for i in range(len(header_items)):
+            if header_items[i] == 'wavelength':
+                wavelength_index = i 
+        wvl = np.loadtxt(file, skiprows=2, usecols=wavelength_index)
+        self.wavelengths = wvl
+        
+        filedtype = []
+        colnames = []
+        for ph in self.phases:
+            colname = 'Ph'+str(ph)
+            if colname in colnames:
+                colname = colname + 'v1'
+            count = 2
+            while(colname in colnames):
+                colname = colname[0:-2] + 'v'+str(count)
+                count = count + 1
+            colnames.append(colname)
+            dt = (colname, 'f4')
+            filedtype.append(dt)
+        if wavelength_index == 0:
+            data = np.loadtxt(file, dtype=filedtype, skiprows=2, usecols=range(1,colnumber + 1))
+        elif wavelength_index == 1:
+            data = np.loadtxt(file, dtype=filedtype, skiprows=2, usecols=range(0,colnumber))
+        self.data = data
+        return
+      
     def preprocess(self, phasekey):
         """
         Zeros the mean and scales std to 1 for the spectrum indicated.
@@ -499,6 +544,7 @@ class SNIDsn:
         -------
 
         """
+        assert self.continuum != None #None if file is not .lnw
         continuum_header = self.continuum[0]
         continuum = self.continuum[1:]
         if verbose: 
