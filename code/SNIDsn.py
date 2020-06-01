@@ -410,86 +410,59 @@ class SNIDsn:
         with open(lnwfile) as lnw:
             lines = lnw.readlines()
             lnw.close()
-        if len(header_lines) == 10: #if file matches tutorial data format
-            header_line = lines[0].strip()
-            header_items = header_line.split()
-            header = dict()
-            header['Nspec'] = int(header_items[0])
-            header['Nbins'] = int(header_items[1])
-            header['WvlStart'] = float(header_items[2])
-            header['WvlEnd'] = float(header_items[3])
-            header['SplineKnots'] = int(header_items[4])
-            header['SN'] = header_items[5]
-            header['dm15'] = float(header_items[6])
-            header['TypeStr'] = header_items[7]
-            header['TypeInt'] = int(header_items[8])
-            header['SubTypeInt'] = int(header_items[9])
-            self.header = header
+        header_line = lines[0].strip()
+        header_items = header_line.split()
+        header = dict()
+        header['Nspec'] = int(header_items[0])
+        header['Nbins'] = int(header_items[1])
+        header['WvlStart'] = float(header_items[2])
+        header['WvlEnd'] = float(header_items[3])
+        header['SplineKnots'] = int(header_items[4])
+        header['SN'] = header_items[5]
+        header['dm15'] = float(header_items[6])
+        header['TypeStr'] = header_items[7]
+        header['TypeInt'] = int(header_items[8])
+        header['SubTypeInt'] = int(header_items[9])
+        self.header = header
 
-            tp, subtp = getType(header['TypeInt'], header['SubTypeInt'])
-            self.type = tp
-            self.subtype = subtp
+        tp, subtp = getType(header['TypeInt'], header['SubTypeInt'])
+        self.type = tp
+        self.subtype = subtp
 
-            phase_line_ind = len(lines) - self.header['Nbins'] - 1
-            phase_items = lines[phase_line_ind].strip().split()
-            self.phaseType = int(phase_items[0])
-            phases = np.array([float(ph) for ph in phase_items[1:]])
-            self.phases = phases
+        phase_line_ind = len(lines) - self.header['Nbins'] - 1
+        phase_items = lines[phase_line_ind].strip().split()
+        self.phaseType = int(phase_items[0])
+        phases = np.array([float(ph) for ph in phase_items[1:]])
+        self.phases = phases
 
-            wvl = np.loadtxt(lnwfile, skiprows=phase_line_ind + 1, usecols=0)
-            self.wavelengths = wvl
-            lnwdtype = []
-            colnames = []
-            for ph in self.phases:
-                colname = 'Ph'+str(ph)
-                if colname in colnames:
-                    colname = colname + 'v1'
-                count = 2
-                while(colname in colnames):
-                    colname = colname[0:-2] + 'v'+str(count)
-                    count = count + 1
-                colnames.append(colname)
-                dt = (colname, 'f4')
-                lnwdtype.append(dt)
-            #lnwdtype = [('Ph'+str(ph), 'f4') for ph in self.phases]
-            #print lines[phase_line_ind+1]
-            data = np.loadtxt(lnwfile, dtype=lnwdtype, skiprows=phase_line_ind + 1, usecols=range(1,len(self.phases) + 1))
-            self.data = data
+        wvl = np.loadtxt(lnwfile, skiprows=phase_line_ind + 1, usecols=0)
+        self.wavelengths = wvl
+        lnwdtype = []
+        colnames = []
+        for ph in self.phases:
+            colname = 'Ph'+str(ph)
+            if colname in colnames:
+                colname = colname + 'v1'
+            count = 2
+            while(colname in colnames):
+                colname = colname[0:-2] + 'v'+str(count)
+                count = count + 1
+            colnames.append(colname)
+            dt = (colname, 'f4')
+            lnwdtype.append(dt)
+        #lnwdtype = [('Ph'+str(ph), 'f4') for ph in self.phases]
+        #print lines[phase_line_ind+1]
+        data = np.loadtxt(lnwfile, dtype=lnwdtype, skiprows=phase_line_ind + 1, usecols=range(1,len(self.phases) + 1))
+        self.data = data
 
-            continuumcols = len(lines[1].strip().split())
-            continuum = np.ndarray((phase_line_ind - 1,continuumcols))
-            for ind in np.arange(1,phase_line_ind - 0):
-                cont_line = lines[ind].strip().split()
-                #print cont_line
-                continuum[ind - 1] = np.array([float(x) for x in cont_line])
-            self.continuum = continuum
-               return
-        else: #if file only has spectra and wavelengths
-            phase_items = lines[0].strip().split()
-            self.phaseType = int(phase_items[0])
-            phases = np.array([float(ph) for ph in phase_items[1:]])
-            self.phases = phases
-            
-            wvl = np.loadtxt(lnwfile, skiprows=1, usecols=0)
-            self.wavelengths = wvl
-            lnwdtype = []
-            colnames = []
-            for ph in self.phases:
-                colname = 'Ph'+str(ph)
-                if colname in colnames:
-                    colname = colname + 'v1'
-                count = 2
-                while(colname in colnames):
-                    colname = colname[0:-2] + 'v'+str(count)
-                    count = count + 1
-                colnames.append(colname)
-                dt = (colname, 'f4')
-                lnwdtype.append(dt)
-            
-            data = data = np.loadtxt(lnwfile, dtype=lnwdtype, skiprows=1, usecols=range(1,len(self.phases) + 1))
-            self.data = data
-            return 
-            
+        continuumcols = len(lines[1].strip().split())
+        continuum = np.ndarray((phase_line_ind - 1,continuumcols))
+        for ind in np.arange(1,phase_line_ind - 0):
+            cont_line = lines[ind].strip().split()
+            #print cont_line
+            continuum[ind - 1] = np.array([float(x) for x in cont_line])
+        self.continuum = continuum
+        return
 
     def preprocess(self, phasekey):
         """
@@ -526,76 +499,73 @@ class SNIDsn:
         -------
 
         """
-        if len(header_lines) == 10:
-            continuum_header = self.continuum[0]
-            continuum = self.continuum[1:]
-            if verbose: 
-                print("continuum lines")
-                print(continuum)
-            nknot_mean_list = knot_meanflux_list(continuum_header)
-            if verbose: 
-                print("nknot mean list")
-                print(nknot_mean_list)
-            xy_knot_dict = knot_dict(continuum)
-            if verbose: print(xy_knot_dict)
-            wvl, dwbin, dwlog = snid_wvl_axis()
-            data_unflat = []
-            for nspec_ind in range(self.header['Nspec']):
-                spline_x = []
-                spline_y = []
-                spline_deg = 3
-                num_splines_spec = int(nknot_mean_list[nspec_ind][0])
+        continuum_header = self.continuum[0]
+        continuum = self.continuum[1:]
+        if verbose: 
+            print("continuum lines")
+            print(continuum)
+        nknot_mean_list = knot_meanflux_list(continuum_header)
+        if verbose: 
+            print("nknot mean list")
+            print(nknot_mean_list)
+        xy_knot_dict = knot_dict(continuum)
+        if verbose: print(xy_knot_dict)
+        wvl, dwbin, dwlog = snid_wvl_axis()
+        data_unflat = []
+        for nspec_ind in range(self.header['Nspec']):
+            spline_x = []
+            spline_y = []
+            spline_deg = 3
+            num_splines_spec = int(nknot_mean_list[nspec_ind][0])
+            if verbose:
+                print("num splines for this spectrum")
+                print(num_splines_spec)
+            for spline_ind in np.array(list(xy_knot_dict.keys()))[:num_splines_spec]:
+                pair = xy_knot_dict[spline_ind][nspec_ind]
+                if verbose: 
+                    print("knot pair")
+                    print(pair)
+                xknot = pair[0]
+                yknot = pair[1]
+                xknot = np.power(10,xknot)
+                yknot = np.power(10,yknot)*np.power(10,nknot_mean_list[nspec_ind][1])
+                spline_x.append(xknot)
+                spline_y.append(yknot)
                 if verbose:
-                    print("num splines for this spectrum")
-                    print(num_splines_spec)
-                for spline_ind in np.array(list(xy_knot_dict.keys()))[:num_splines_spec]:
-                    pair = xy_knot_dict[spline_ind][nspec_ind]
-                    if verbose: 
-                        print("knot pair")
-                        print(pair)
-                    xknot = pair[0]
-                    yknot = pair[1]
-                    xknot = np.power(10,xknot)
-                    yknot = np.power(10,yknot)*np.power(10,nknot_mean_list[nspec_ind][1])
-                    spline_x.append(xknot)
-                    spline_y.append(yknot)
-                    if verbose:
-                        print("xknot, yknot")
-                        print(xknot, yknot)
-                spline_x = np.array(spline_x)
-                spline_x_wvl = np.array([convert_xknot_wvl(x,1024,wvl) for x in spline_x])
-                spline_y = np.array(spline_y)
-                if verbose:
-                    print("splines")
-                    print(spline_x)
-                    print(spline_x_wvl)
-                    print(spline_y)
-                    print(spline_deg)
-                msk = np.logical_and(wvl >= spline_x_wvl[spl_a_ind], wvl <= spline_x_wvl[spl_b_ind])
-                cubicspline = CubicSpline(spline_x_wvl, np.log10(spline_y))
-                y = cubicspline(wvl)
-                if verbose:
-                    print("spline eval")
-                    print(y)
-                    print(np.power(10,y)[1])
-                unflat = []
-                for i in range(len(y)):
-                    phkey = self.data.dtype.names[nspec_ind]
-                    newf = (self.data[phkey][i]+1)*np.power(10,y[i])
-                    #newf = (lnw_dat[i,1]+1)*np.power(10,y[i])
-                    unflat.append(newf)
-                if verbose:
-                    print("unflat")
-                    print(unflat[0:10])
-                unflat = np.array(unflat)
-                zeromsk = np.logical_or(wvl < spline_x_wvl[spl_a_ind], wvl > spline_x_wvl[spl_b_ind])
-                unflat[zeromsk] = 0.0
-                unflat = unflat/dwbin/np.mean(unflat[msk]/dwbin[msk])
-                data_unflat.append(unflat)
-            self.data_unflat = np.array(data_unflat).T
-            return
-        else:
-            return
+                    print("xknot, yknot")
+                    print(xknot, yknot)
+            spline_x = np.array(spline_x)
+            spline_x_wvl = np.array([convert_xknot_wvl(x,1024,wvl) for x in spline_x])
+            spline_y = np.array(spline_y)
+            if verbose:
+                print("splines")
+                print(spline_x)
+                print(spline_x_wvl)
+                print(spline_y)
+                print(spline_deg)
+            msk = np.logical_and(wvl >= spline_x_wvl[spl_a_ind], wvl <= spline_x_wvl[spl_b_ind])
+            cubicspline = CubicSpline(spline_x_wvl, np.log10(spline_y))
+            y = cubicspline(wvl)
+            if verbose:
+                print("spline eval")
+                print(y)
+                print(np.power(10,y)[1])
+            unflat = []
+            for i in range(len(y)):
+                phkey = self.data.dtype.names[nspec_ind]
+                newf = (self.data[phkey][i]+1)*np.power(10,y[i])
+                #newf = (lnw_dat[i,1]+1)*np.power(10,y[i])
+                unflat.append(newf)
+            if verbose:
+                print("unflat")
+                print(unflat[0:10])
+            unflat = np.array(unflat)
+            zeromsk = np.logical_or(wvl < spline_x_wvl[spl_a_ind], wvl > spline_x_wvl[spl_b_ind])
+            unflat[zeromsk] = 0.0
+            unflat = unflat/dwbin/np.mean(unflat[msk]/dwbin[msk])
+            data_unflat.append(unflat)
+        self.data_unflat = np.array(data_unflat).T
+        return
 
         
 
