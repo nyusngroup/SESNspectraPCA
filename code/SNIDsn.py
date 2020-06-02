@@ -466,27 +466,38 @@ class SNIDsn:
         return
     
     def loadSN(self, file, phaseType):
+        """
+        Loads an ascii SNID template file specified by the path file into
+        a SNIDsn object. The file must only have wavelength in the first column
+        and fluxes in subsequent columns. The header line must also have the phases,
+        with the first entry in the header line being the phase type.
+
+        Parameters
+        ----------
+        file : string
+            path to SNID template file produced by logwave.
+        phaseType : integer
+            value that specifies whether phases are defined relative to max
+
+        Returns
+        -------
+
+        """
+        
         assert file[-3:] != 'lnw' #file cannot be .lnw
         self.phaseType = phaseType
-        with open(file) as file:
-            lines = file.readlines()
-            file.close()
-        header_line = lines[0].strip()
-        header_items = header_line.split()
-        assert len(header_items) == 2 #can only have 2 headers
-        for item in header_items:
-            assert item == "wavelength" or item == "flux" #headers can only be flux or wavelength
         
-        phase_items = lines[1].strip().split()
-        phases = np.array([float(ph) for ph in phase_items[1:]])
+        all_data = np.loadtxt(file, skiprows = 1)
+        
+        header_line = all_data[0]
+        phases = header_line[1:len(header_line)]
         self.phases = phases
-        colnumber = len(phases)
-            
-        wavelength_index = 0
-        for i in range(len(header_items)):
-            if header_items[i] == 'wavelength':
-                wavelength_index = i 
-        wvl = np.loadtxt(file, skiprows=2, usecols=wavelength_index)
+        
+        wvl = []
+        for row in all_data:
+            wvl.append(row[0])
+        wvl.pop(0)
+        wvl = np.array(wvl)
         self.wavelengths = wvl
         
         filedtype = []
@@ -502,10 +513,7 @@ class SNIDsn:
             colnames.append(colname)
             dt = (colname, 'f4')
             filedtype.append(dt)
-        if wavelength_index == 0:
-            data = np.loadtxt(file, dtype=filedtype, skiprows=2, usecols=range(1,colnumber + 1))
-        elif wavelength_index == 1:
-            data = np.loadtxt(file, dtype=filedtype, skiprows=2, usecols=range(0,colnumber))
+        data = np.loadtxt(file, dtype=filedtype, skiprows=2, usecols=range(1,len(self.phases) + 1))
         self.data = data
         return
       
@@ -832,7 +840,8 @@ class SNIDsn:
             fig = plt.figure(figsize=(15,5))
             plt.plot(self.wavelengths, spec, 'r', label='pre-smooth')
             plt.plot(self.wavelengths, self.data[phase], 'k', label='smooth')
-            plt.legend(title=self.header['SN'])
+            if self.header == None:
+                plt.legend(title=self.header['SN'])
             return fig
         return
 
