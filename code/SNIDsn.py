@@ -465,19 +465,36 @@ class SNIDsn:
         self.continuum = continuum
         return
     
-    def loadSN(self, file, phaseType):
+    def loadSN(self, file, phaseType, TypeInt, SubTypeInt, TypeStr, Nspec, Nbins, WvlStart, WvlEnd, 
+              SN):
         """
         Loads an ascii SNID template file specified by the path file into
-        a SNIDsn object. The file must only have wavelength in the first column
-        and fluxes in subsequent columns. The header line must also have the phases,
-        with the first entry in the header line being the phase type.
+        a SNIDsn object. The file must only have wavelengths in the first column
+        and fluxes in subsequent columns. The first line must also have the phases,
+        with the first entry in the first line being the phase type. 
 
         Parameters
         ----------
         file : string
             path to SNID template file produced by logwave.
         phaseType : integer
-            value that specifies whether phases are defined relative to max
+            integer value that specifies whether phases are defined relative to max
+        TypeInt : integer
+            integer value that specifies the type of the supernova
+        SubTypeInt : integer
+            integer value that specifies the subtype of the supernova
+        TypeStr : string
+            specifies the type and subtype of the supernova
+        Nspec : integer
+            integer value that specifies the number of phases at which fluxes were measured
+        Nbins : integer
+            integer value that specifies the total number of flux measurements for each phase  
+        WvlStart : float
+            float value that specifies the lowest wavelength value measured
+        WvlEnd : float
+            float value that specifies the highest wavelength value measured
+        SN : string
+            name of the supernova
 
         Returns
         -------
@@ -485,20 +502,31 @@ class SNIDsn:
         """
         
         assert file[-3:] != 'lnw' #file cannot be .lnw
+        
         self.phaseType = phaseType
         
-        all_data = np.loadtxt(file, skiprows = 1)
+        header = dict()
+        header['Nspec'] = Nspec
+        header['Nbins'] = Nbins
+        header['WvlStart'] = WvlStart
+        header['WvlEnd'] = WvlEnd
+        header['SN'] = SN
+        header['TypeStr'] = TypeStr
+        header['TypeInt'] = TypeInt
+        header['SubTypeInt'] = SubTypeInt
+        self.header = header
+        
+        tp, subtp = getType(header['TypeInt'], header['SubTypeInt'])
+        self.type = tp
+        self.subtype = subtp
+        
+        all_data = np.loadtxt(file)
         
         header_line = all_data[0]
-        phases = header_line[1:len(header_line)]
+        phases = header_line[1:]
         self.phases = phases
         
-        wvl = []
-        for row in all_data:
-            wvl.append(row[0])
-        wvl.pop(0)
-        wvl = np.array(wvl)
-        self.wavelengths = wvl
+        self.wavelengths = all_data[1:, 0]
         
         filedtype = []
         colnames = []
@@ -513,7 +541,7 @@ class SNIDsn:
             colnames.append(colname)
             dt = (colname, 'f4')
             filedtype.append(dt)
-        data = np.loadtxt(file, dtype=filedtype, skiprows=2, usecols=range(1,len(self.phases) + 1))
+        data = np.loadtxt(file, dtype=filedtype, skiprows=1, usecols=range(1,len(self.phases) + 1))
         self.data = data
         return
       
@@ -840,8 +868,7 @@ class SNIDsn:
             fig = plt.figure(figsize=(15,5))
             plt.plot(self.wavelengths, spec, 'r', label='pre-smooth')
             plt.plot(self.wavelengths, self.data[phase], 'k', label='smooth')
-            if self.header == None:
-                plt.legend(title=self.header['SN'])
+            plt.legend(title=self.header['SN'])
             return fig
         return
 
