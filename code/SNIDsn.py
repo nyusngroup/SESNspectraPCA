@@ -580,7 +580,7 @@ class SNIDsn:
         -------
 
         """
-        assert self.continuum != None #None if file is not .lnw
+        
         continuum_header = self.continuum[0]
         continuum = self.continuum[1:]
         if verbose: 
