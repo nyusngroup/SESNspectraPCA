@@ -407,6 +407,7 @@ class SNIDsn:
         -------
 
         """
+        assert lnwfile[-3:] == 'lnw' #file must be .lnw
         with open(lnwfile) as lnw:
             lines = lnw.readlines()
             lnw.close()
@@ -463,7 +464,78 @@ class SNIDsn:
             continuum[ind - 1] = np.array([float(x) for x in cont_line])
         self.continuum = continuum
         return
+    
+    def loadSN(self, file, phaseType, TypeInt, SubTypeInt, TypeStr, SN, redshift):
+        """
+        Loads an ascii SNID template file specified by the path file into
+        a SNIDsn object. The file must only have wavelengths in the first column
+        and fluxes in subsequent columns. The first line must also have the phases,
+        with the first entry in the first line being the phase type. 
 
+        Parameters
+        ----------
+        file : string
+            path to SNID template file produced by logwave.
+        phaseType : integer
+            integer value that specifies whether phases are defined relative to max
+        TypeInt : integer
+            integer value that specifies the type of the supernova
+        SubTypeInt : integer
+            integer value that specifies the subtype of the supernova
+        TypeStr : string
+            specifies the type and subtype of the supernova
+        SN : string
+            name of the supernova
+
+        Returns
+        -------
+
+        """
+        
+        assert file[-3:] != 'lnw' #file cannot be .lnw
+        
+        self.phaseType = phaseType
+        
+        header = dict()
+        header['Nspec'] = len(np.loadtxt(file).tolist()[0]) - 1
+        header['Nbins'] = len(np.loadtxt(file, skiprows = 1, usecols = 0).tolist())
+        header['WvlStart'] = np.loadtxt(file, skiprows = 1, usecols = 0).min()
+        header['WvlEnd'] = np.loadtxt(file, skiprows = 1, usecols = 0).max()
+        header['SN'] = SN
+        header['TypeStr'] = TypeStr
+        header['TypeInt'] = TypeInt
+        header['SubTypeInt'] = SubTypeInt
+        self.header = header
+        
+        tp, subtp = getType(header['TypeInt'], header['SubTypeInt'])
+        self.type = tp
+        self.subtype = subtp
+        
+        all_data = np.loadtxt(file)
+        
+        header_line = all_data[0]
+        phases = header_line[1:]
+        self.phases = phases
+        
+        self.wavelengths = all_data[1:, 0] / (1 + redshift)
+        
+        filedtype = []
+        colnames = []
+        for ph in self.phases:
+            colname = 'Ph'+str(ph)
+            if colname in colnames:
+                colname = colname + 'v1'
+            count = 2
+            while(colname in colnames):
+                colname = colname[0:-2] + 'v'+str(count)
+                count = count + 1
+            colnames.append(colname)
+            dt = (colname, 'f4')
+            filedtype.append(dt)
+        data = np.loadtxt(file, dtype=filedtype, skiprows=1, usecols=range(1,len(self.phases) + 1))
+        self.data = data
+        return
+      
     def preprocess(self, phasekey):
         """
         Zeros the mean and scales std to 1 for the spectrum indicated.
@@ -499,6 +571,7 @@ class SNIDsn:
         -------
 
         """
+        
         continuum_header = self.continuum[0]
         continuum = self.continuum[1:]
         if verbose: 
