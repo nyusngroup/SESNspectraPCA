@@ -461,3 +461,12 @@ def getDiagnostics(dataset):
  
     return snnames, snphases, snid_type_pair, snid_type_str, snphasetype
 
+def removeContinuums(dataset):
+    new_dataset = {}
+    for key, value in dataset.items():
+        removed = value.removeContinuum()
+        new_dataset[key] = removed
+    return new_dataset
+     
+        
+
