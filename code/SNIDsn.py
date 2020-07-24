@@ -465,8 +465,7 @@ class SNIDsn:
         self.continuum = continuum
         return
     
-    def loadSN(self, file, phaseType, TypeInt, SubTypeInt, TypeStr, Nspec, Nbins, WvlStart, WvlEnd, 
-              SN):
+    def loadSN(self, file, phaseType, TypeInt, SubTypeInt, TypeStr, SN, redshift):
         """
         Loads an ascii SNID template file specified by the path file into
         a SNIDsn object. The file must only have wavelengths in the first column
@@ -485,14 +484,6 @@ class SNIDsn:
             integer value that specifies the subtype of the supernova
         TypeStr : string
             specifies the type and subtype of the supernova
-        Nspec : integer
-            integer value that specifies the number of phases at which fluxes were measured
-        Nbins : integer
-            integer value that specifies the total number of flux measurements for each phase  
-        WvlStart : float
-            float value that specifies the lowest wavelength value measured
-        WvlEnd : float
-            float value that specifies the highest wavelength value measured
         SN : string
             name of the supernova
 
@@ -506,10 +497,10 @@ class SNIDsn:
         self.phaseType = phaseType
         
         header = dict()
-        header['Nspec'] = Nspec
-        header['Nbins'] = Nbins
-        header['WvlStart'] = WvlStart
-        header['WvlEnd'] = WvlEnd
+        header['Nspec'] = len(np.loadtxt(file).tolist()[0]) - 1
+        header['Nbins'] = len(np.loadtxt(file, skiprows = 1, usecols = 0).tolist())
+        header['WvlStart'] = np.loadtxt(file, skiprows = 1, usecols = 0).min()
+        header['WvlEnd'] = np.loadtxt(file, skiprows = 1, usecols = 0).max()
         header['SN'] = SN
         header['TypeStr'] = TypeStr
         header['TypeInt'] = TypeInt
@@ -526,7 +517,7 @@ class SNIDsn:
         phases = header_line[1:]
         self.phases = phases
         
-        self.wavelengths = all_data[1:, 0]
+        self.wavelengths = all_data[1:, 0] / (1 + redshift)
         
         filedtype = []
         colnames = []
